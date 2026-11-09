@@ -27,13 +27,15 @@ Online: In GitHub unter *Settings → Pages* „Deploy from a branch“, Branch 
 
 Eigene Darts („Speichern“) landen nur im `localStorage` des Browsers und erscheinen unter der Marke „Eigene“.
 
+Nach Änderungen an App oder Daten `DATA_V` in `app.js` und `?v=` in `index.html` erhöhen, sonst zeigen Browser (v. a. Safari) noch die alte Version aus dem Cache.
+
 Neue Marke ergänzen: Datei `data/brands/<id>.json` mit `{"brand": "...", "darts": [...]}` anlegen und in `data/brands.json` eintragen.
 
 ## Datenbank
 
-351 Steel-Tip-Darts, ein Eintrag je Modell und Gewicht (Harrows 108, Red Dragon 91, Winmau 90, Target 49, Shot 4, Mission 3, Bullet 2, Bull's 2, Dynasty 1, Koto 1). Nur aktuelle Serien bzw. Pro-Modelle.
+357 Steel-Tip-Darts, ein Eintrag je Modell und Gewicht (Harrows 114, Red Dragon 91, Winmau 90, Target 49, Shot 4, Mission 3, Bullet 2, Bull's 2, Dynasty 1, Koto 1). Nur aktuelle Serien bzw. Pro-Modelle.
 
-Aufgeteilt nach Marke (eine Datei je Marke). In der App sind die Darts nach Marke → Modell → Gewicht gegliedert (160 Modelle).
+Aufgeteilt nach Marke (eine Datei je Marke). In der App sind die Darts nach Marke → Modell → Gewicht gegliedert (161 Modelle).
 
 Felder je Eintrag:
 
@@ -51,7 +53,7 @@ Felder je Eintrag:
 | `url` | Quelle (Händlerseite) |
 | `note` | optional, z. B. „CG aus Balance-Angabe geschätzt“ |
 
-Quellen der Maße: Händlerangaben von [a-zdarts.com](https://a-zdarts.com) (138 Einträge) und [dartshopper.com](https://www.dartshopper.com) (213 Einträge), Link je Dart in der App.
+Quellen der Maße: Händlerangaben von [a-zdarts.com](https://a-zdarts.com) (138 Einträge) und [dartshopper.com](https://www.dartshopper.com) (213 Einträge), Harrows Atrax von [harrowsdarts.com](https://harrowsdarts.com/products/atrax-95) und [dartsonline.com.au](https://www.dartsonline.com.au/products/harrows-atrax-95-tungsten-steel-tip-darts) (6 Einträge), Link je Dart in der App.
 
 ## Modell
 
