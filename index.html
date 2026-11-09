@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dart-Labor</title>
+<meta name="description" content="Darts vor dem Kauf per Flugsimulation vergleichen.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600&family=Barlow:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+<header><h1>Dart-Labor</h1><p class="sub">Zwei Darts wählen, optimal werfen lassen, Flug und Streuung vergleichen.</p></header>
+
+<section aria-labelledby="h-slot">
+<h2 id="h-slot">Dart wählen</h2>
+<div class="slots"><button id="sA" aria-pressed="true"><b style="color:var(--ca)">Dart A</b><span id="nA"></span></button><button id="sB" aria-pressed="false"><b style="color:var(--cb)">Dart B</b><span id="nB"></span></button></div>
+<p class="note" style="margin-top:8px">Tippe unten auf einen Dart, er wird in den aktiven Platz geladen (Gewicht, Länge, Durchmesser, Schwerpunkt).</p>
+<input class="q" id="q" type="search" placeholder="Suchen, z. B. Aspinall" autocomplete="off">
+<div class="list" id="list"></div>
+<p class="note hint" id="dbn"></p>
+</section>
+
+<section aria-labelledby="h-set">
+<h2 id="h-set">Feineinstellung (aktiver Dart)</h2>
+<div class="row"><label for="wt">Barrel-Gewicht</label><input type="range" id="wt" min="16" max="30" step="0.5" value="24"><output id="wto"></output></div>
+<div class="row"><label for="bar">Barrel-Länge</label><input type="range" id="bar" min="35" max="55" step="0.01" value="50.05"><output id="baro"></output></div>
+<div class="row"><label for="dia">Durchmesser max.</label><input type="range" id="dia" min="5.5" max="8.5" step="0.01" value="7.07"><output id="diao"></output></div>
+<div class="row"><label for="cg">Schwerpunkt</label><input type="range" id="cg" min="30" max="70" step="1" value="40"><output id="cgo"></output></div>
+<div class="row"><label for="tip">Spitzenlänge</label><input type="range" id="tip" min="20" max="32" step="1" value="25"><output id="tipo"></output></div>
+<div class="row"><label for="sh">Schaftlänge</label><input type="range" id="sh" min="10" max="50" step="1" value="30"><output id="sho"></output></div>
+<div class="seg" id="seg"><button data-s="n2" aria-pressed="true">Flight No.2</button><button data-s="n6" aria-pressed="false">Flight No.6</button></div>
+<div class="row"><label for="gr">Griff ab Barrelende</label><input type="range" id="gr" min="0" max="40" step="1" value="24"><output id="gro"></output></div>
+<div class="save"><input id="nm" type="text" placeholder="Name für eigenen Dart" maxlength="60"><button id="sv">Speichern</button></div>
+<p class="note" id="svn">Der Schwerpunkt ist aus der Herstellerangabe (vorn, mittig, hinten) geschätzt, da keine genauen Werte veröffentlicht werden. Eigene Darts werden nur in diesem Browser gespeichert.</p>
+</section>
+
+<section aria-labelledby="h-t">
+<h2 id="h-t">Dein Wurf</h2>
+<div class="row"><label for="v">Geschwindigkeit</label><input type="range" id="v" min="5" max="12" step="0.1" value="8"><output id="vo"></output></div>
+<div class="row"><label for="h">Abwurfhöhe</label><input type="range" id="h" min="1.4" max="1.9" step="0.01" value="1.65"><output id="ho"></output></div>
+<p class="note">Der Abwurfwinkel wird für jeden Dart so berechnet, dass der Bull getroffen wird. Die Streuung ist klein angesetzt.</p>
+</section>
+
+<section aria-labelledby="h-v">
+<h2 id="h-v">Vergleich</h2>
+<div class="tbl">
+<div class="h">Kennwert</div><div class="h" id="tA" style="color:var(--ca)">A</div><div class="h" id="tB" style="color:var(--cb)">B</div>
+<div class="k">Gesamtlänge</div><div id="rLA"></div><div id="rLB"></div>
+<div class="k">Schwerpunkt ab Spitze</div><div id="rSA"></div><div id="rSB"></div>
+<div class="k">Gesamtgewicht</div><div id="rMA"></div><div id="rMB"></div>
+<div class="k">Abwurfwinkel</div><div id="rWA"></div><div id="rWB"></div>
+<div class="k">Flugzeit</div><div id="rTA"></div><div id="rTB"></div>
+<div class="k">Steckwinkel</div><div id="rKA"></div><div id="rKB"></div>
+<div class="k">Max. Anstellwinkel</div><div id="rAA"></div><div id="rAB"></div>
+<div class="k">Nickperiode</div><div id="rPA"></div><div id="rPB"></div>
+<div class="k">Streuung (R90)</div><div id="rRA"></div><div id="rRB"></div>
+<div class="k">Eindringtiefe</div><div id="rDA"></div><div id="rDB"></div>
+</div>
+<p class="vd"><b style="color:var(--ca)" id="vtA">A:</b> <span id="vA"></span></p>
+<p class="vd"><b style="color:var(--cb)" id="vtB">B:</b> <span id="vB"></span></p>
+<canvas id="dt" aria-label="Darts im Vergleich"></canvas>
+<canvas id="fl" aria-label="Flugbahnen"></canvas>
+<canvas id="bd" aria-label="Streuung am Board"></canvas>
+<p class="note">Modell mit Annahmen: Flight-Maße No.2 etwa 44 × 35 mm, No.6 etwa 44 × 24 mm (Quellen uneinheitlich), Eindringwiderstand 50 N, Griffwirkung nur grob. Gedacht zum Vergleichen von Darts, nicht als genaue Vorhersage. Dart-Daten stammen aus Händlerangaben (a-zdarts.com, dartshopper.com), siehe Link je Dart.</p>
+</section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
