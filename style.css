@@ -57,13 +57,17 @@ a{color:var(--ca)}
 
 /* Labor */
 .labgrid{display:grid;grid-template-columns:1fr;gap:12px}
+.vizcol{display:contents}
 .viz{position:sticky;top:0;z-index:5;background:var(--surface);padding:6px 0;margin:-6px 0 0;border-bottom:1px solid var(--line)}
+#ed{margin-top:4px}
 .legend{display:flex;gap:12px;font-size:12px;font-weight:500;min-width:0}
 .legend span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .legend .la{color:var(--ca)}.legend .lb{color:var(--cb)}
+.legend .act{font-weight:700}
+.legend .ghost{opacity:.55;font-weight:400}
 .legend .la::before{content:"";display:inline-block;width:14px;height:2px;background:var(--ca);vertical-align:middle;margin-right:4px}
 .legend .lb::before{content:"";display:inline-block;width:14px;height:0;border-top:2px dashed var(--cb);vertical-align:middle;margin-right:4px}
-.plots{display:grid;grid-template-columns:1fr 150px;gap:6px;margin-top:4px}
+.plots{display:grid;grid-template-columns:1fr 130px;gap:6px;margin-top:4px}
 canvas{display:block;width:100%;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
 .kpis{display:grid;grid-template-columns:auto auto auto;justify-content:start;column-gap:16px;row-gap:0;font-size:12px;margin-top:6px;font-variant-numeric:tabular-nums}
 .kpis .k{color:var(--muted)}
@@ -101,6 +105,7 @@ section>details[open]>summary::before{content:"▾ "}
 /* Breite Bildschirme: Grafik links (mitlaufend), Regler rechts */
 @media (min-width:860px){
 .labgrid{grid-template-columns:1.25fr 1fr;align-items:start}
-.viz{top:12px;border-bottom:0;margin:0;padding:0}
+.vizcol{display:block;position:sticky;top:12px}
+.viz{position:static;border-bottom:0;margin:0;padding:0}
 .plots{grid-template-columns:1fr}
 }

@@ -220,6 +220,7 @@ $('gro').textContent=s.grip+' mm';$('tipo').textContent=s.tip+' mm';$('sho').tex
 $('vo').textContent=fmt(+$('v').value,1)+' m/s';$('ho').textContent=fmt(+$('h').value,2)+' m';
 $('nA').textContent=lbl(0);$('nB').textContent=lbl(1);
 $('lgA').textContent='A '+lbl(0);$('lgB').textContent='B '+lbl(1);
+$('lgA').className='la '+(act===0?'act':'ghost');$('lgB').className='lb '+(act===1?'act':'ghost');
 $('tA').textContent=setups[0].name;$('tB').textContent=setups[1].name;
 $('vtA').textContent=setups[0].name+':';$('vtB').textContent=setups[1].name+':';
 const A=out[0],B=out[1];
@@ -242,12 +243,12 @@ $('vA').textContent=rating(A);$('vB').textContent=rating(B);
 }
 
 /* ---------- Zeichnen ---------- */
-let FL,DT,BD;
+let FL,DT,BD,ED;
 const wide=()=>matchMedia('(min-width:860px)').matches;
 function setup(){
 if(wide()){FL=fit($('fl'),170);BD=fit($('bd'),260)}
-else{FL=fit($('fl'),150);BD=fit($('bd'),150)}
-DT=fit($('dt'),110);
+else{FL=fit($('fl'),130);BD=fit($('bd'),130)}
+DT=fit($('dt'),110);ED=fit($('ed'),wide()?220:140);
 }
 function rad(t,b,rr){return rr*(3.4+0.9*b*(1-2*t))}
 function drawBody(c,p,g,sc){
@@ -277,13 +278,62 @@ const sx=(W-24)/XB,top=20,bot=8,sy=(H-top-bot)/(y1-y0),ox=10,X=x=>ox+x*sx,Y=y=>t
 c.strokeStyle=P.faint;c.lineWidth=1;c.setLineDash([3,4]);c.beginPath();c.moveTo(X(0),Y(YB));c.lineTo(X(XB),Y(YB));c.stroke();c.setLineDash([]);
 c.fillStyle='#D85A30';c.beginPath();c.arc(X(XB),Y(YB),3.5,0,7);c.fill();
 c.strokeStyle=P.mid;c.beginPath();c.arc(X(0),Y(hh),3,0,7);c.stroke();
-out.forEach((o,i)=>{
-c.strokeStyle=COL[i];c.lineWidth=2;c.setLineDash(i?[5,3]:[]);c.beginPath();
-o.res.frames.forEach((f,k)=>{k?c.lineTo(X(f.x),Y(f.y)):c.moveTo(X(f.x),Y(f.y))});c.stroke();c.setLineDash([]);
+order().forEach(i=>{const o=out[i],on=i===act;
+c.globalAlpha=on?1:0.35;c.strokeStyle=COL[i];c.lineWidth=on?2.4:1.5;c.setLineDash(i?[5,3]:[]);c.beginPath();
+o.res.frames.forEach((f,k)=>{k?c.lineTo(X(f.x),Y(f.y)):c.moveTo(X(f.x),Y(f.y))});c.stroke();c.setLineDash([]);c.globalAlpha=1;
 });
 const ex=sy/sx;
 c.fillStyle=P.mid;c.font='11px '+FF;c.textAlign='left';
 c.fillText('Flugbahn seitlich'+(ex>1.3?' (Höhe '+fmt(ex)+'× überhöht)':''),6,13);
+}
+// Ghost zuerst zeichnen, aktiven Dart obendrauf
+function order(){return act?[0,1]:[1,0]}
+// Endlage: letzte Flugstrecke der Spitze und steckender Dart, Seitenansicht im echten Maßstab (Winkel unverzerrt)
+const BOARD_T=0.038; // Boarddicke (m), nur Darstellung
+function tipPath(o){
+const sCG=o.g.sCG*1e-3;
+return o.res.frames.map(f=>({x:f.x+sCG*Math.cos(f.th),y:f.y+sCG*Math.sin(f.th)}));
+}
+function drawEnd(){
+const c=ED.c,W=ED.W,H=ED.H;c.clearRect(0,0,W,H);
+const A=out[act];
+const pathA=tipPath(A),face=pathA[pathA.length-1].x;
+// Maßstab: ca. 2 Dartlängen vor dem Board sichtbar
+const span=Math.max(out[0].g.len,out[1].g.len)*1e-3*1.9,bx=W-34,s=(bx-8)/span;
+const yc=A.res.y,X=x=>bx+(x-face)*s,Y=y=>H*0.62-(y-yc)*s;
+// Board
+c.fillStyle=P.faint;c.fillRect(bx,0,BOARD_T*s,H);
+c.strokeStyle=P.mid;c.lineWidth=1.5;c.beginPath();c.moveTo(bx,0);c.lineTo(bx,H);c.stroke();
+c.fillStyle=P.mid;c.font='10px '+FF;c.save();c.translate(bx+BOARD_T*s/2+4,H/2);c.rotate(-Math.PI/2);c.textAlign='center';c.fillText('Board',0,0);c.restore();
+// Bull-Höhe
+c.strokeStyle=P.faint;c.setLineDash([2,3]);c.beginPath();c.moveTo(0,Y(YB));c.lineTo(bx,Y(YB));c.stroke();c.setLineDash([]);
+order().forEach(i=>{
+const o=out[i],on=i===act,tp=tipPath(o),th=o.res.th,d=o.depth*1e-3;
+c.globalAlpha=on?1:0.3;
+// Bahn der Spitze bis zum Board
+c.strokeStyle=COL[i];c.lineWidth=on?2:1.4;c.setLineDash(i?[5,3]:[]);c.beginPath();
+let st=false;tp.forEach(q=>{if(X(q.x)<-10)return;st?c.lineTo(X(q.x),Y(q.y)):(c.moveTo(X(q.x),Y(q.y)),st=true)});c.stroke();c.setLineDash([]);
+// Dart: Spitze um Eindringtiefe im Board, entlang der Achse
+const tf=tp[tp.length-1],tx=X(tf.x)+d*Math.cos(th)*s,ty=Y(tf.y)-d*Math.sin(th)*s;
+c.save();c.translate(tx,ty);c.rotate(-th);
+if(!on){c.filter='grayscale(1)'}
+drawBody(c,o.p,o.g,s*1e-3);
+c.restore();
+if(on){
+// Steckwinkel: Waagerechte und Dartachse
+const r=46,ax=X(tf.x),ay=Y(tf.y);
+c.strokeStyle=P.mid;c.lineWidth=1;c.setLineDash([3,3]);c.beginPath();c.moveTo(ax,ay);c.lineTo(ax-r-14,ay);c.stroke();c.setLineDash([]);
+c.strokeStyle=COL[i];c.lineWidth=1.5;c.beginPath();
+const a0=Math.PI,a1=Math.PI-th;c.arc(ax,ay,r,Math.min(a0,a1),Math.max(a0,a1));c.stroke();
+c.fillStyle=COL[i];c.font='600 13px '+FF;c.textAlign='right';
+c.fillText('Steckwinkel '+fmt(o.steck,1)+'°',ax-8,ay+(o.steck>=0?20:-12));
+}
+c.globalAlpha=1;
+});
+const g=out[1-act];
+c.fillStyle=P.mid;c.font='11px '+FF;c.textAlign='left';
+c.fillText('Endlage von der Seite (maßstabsgetreu)',6,13);
+c.fillText((act?'A':'B')+' (Ghost): '+fmt(g.steck,1)+'°, Eindringtiefe '+fmt(g.depth)+' mm',6,H-6);
 }
 function drawDarts(){
 const c=DT.c,W=DT.W,H=DT.H;c.clearRect(0,0,W,H);
@@ -318,7 +368,7 @@ c.strokeStyle=COL[i];c.lineWidth=1.4;c.setLineDash(i?[4,3]:[]);c.beginPath();c.a
 c.restore();
 c.fillStyle=P.mid;c.font='11px '+FF;c.textAlign='left';c.fillText(W>200?'Trefferbild (±60 mm): 24 Würfe je Dart, A ● B ○, Kreis = 90 %':'Trefferbild',6,13);
 }
-function redraw(){pal();drawFlight();drawDarts();drawBoard()}
+function redraw(){pal();drawEnd();drawFlight();drawDarts();drawBoard()}
 // Neuberechnung höchstens einmal pro Frame, damit die Regler flüssig bleiben
 let pending=false;
 function recompute(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;pal();calc(0);calc(1);labels();redraw();markLoaded()})}
@@ -329,7 +379,7 @@ act=i;
 ['sA','eA'].forEach(id=>$(id).setAttribute('aria-pressed',i===0?'true':'false'));
 ['sB','eB'].forEach(id=>$(id).setAttribute('aria-pressed',i===1?'true':'false'));
 document.querySelector('.ctl').classList.toggle('edB',i===1);
-syncUI();labels();drawDarts();
+syncUI();labels();redraw();
 }
 function syncUI(){
 const s=setups[act];
