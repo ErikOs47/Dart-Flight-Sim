@@ -168,7 +168,7 @@ const SEED=[
 {id:'target-littler-g1-23',brand:'Target',model:'Target Luke Littler G1 Prodigy',name:'Target Luke Littler G1 Prodigy (23 g)',short:'Littler G1',bw:23,len:52,dia:6.5,shape:'Gerade',bal:'Mitte',cg:50,url:SRC+'target-luke-littler-g1-prodigy-swiss-point-steel-tip-darts-23gm'}
 ];
 // Bei jeder Änderung an App oder Daten erhöhen (auch ?v= in index.html), damit Browser keine alte Version aus dem Cache nehmen
-const DATA_V='4';
+const DATA_V='5';
 const LS_KEY='dartlabor.custom.v1',OWN='Eigene';
 let brands=[],darts=SEED.slice(),custom=loadCustom(),brandSel='';
 function loadCustom(){try{const r=JSON.parse(localStorage.getItem(LS_KEY)||'[]');return Array.isArray(r)?r:[]}catch(e){return[]}}
@@ -183,7 +183,7 @@ const BASE={tip:25,shaft:30,shape:'n2',size:1,grip:24};
 function fromDart(d){return Object.assign({},BASE,{dartId:d.id,name:d.short||d.name,mod:false,wt:d.bw,bar:d.len,dia:d.dia,cg:d.cg})}
 let setups=[fromDart(SEED[0]),fromDart(SEED[1])],act=0,out=[null,null];
 function fit(cv,h){const dpr=window.devicePixelRatio||1,w=cv.clientWidth||300;cv.style.height=h+'px';cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);return{c:c,W:w,H:h}}
-function build(s){const p={wt:s.wt,bar:s.bar,dia:s.dia,cg:s.cg,tip:s.tip,shaft:s.shaft,shape:s.shape,size:s.size,wear:0,grip:0,ang:0,h:+$('h').value,v:+$('v').value,psi:0,delta:0,eps:0,wp:0,wy:0,spin:5*2*Math.PI,wind:0};p.grip=p.tip+p.bar-Math.min(s.grip,p.bar);return p}
+function build(s){const p={wt:s.wt,bar:s.bar,dia:s.dia,cg:s.cg,tip:s.tip,shaft:s.shaft,shape:s.shape,size:s.size,wear:0,grip:0,ang:0,h:+$('h').value,v:+$('v').value,psi:0,delta:+$('dl').value*D,eps:0,wp:+$('wp').value*D,wy:0,spin:5*2*Math.PI,wind:0};p.grip=p.tip+p.bar-Math.min(s.grip,p.bar);return p}
 function calc(i){
 const p=build(setups[i]);p.ang=solveAng(p,0.0005);
 const res=sim3(p,true),g=geom(p),miss=Math.abs(res.y-YB)>0.01;
@@ -192,7 +192,8 @@ const sc=scatter(p,K_SCATTER);let mx=0,my=0;sc.forEach(q=>{mx+=q[0];my+=q[1]});m
 const d=sc.map(q=>Math.hypot(q[0]-mx,q[1]-my)).sort((a,b)=>a-b),r90=d[Math.floor(0.9*(d.length-1))];
 const Eax=0.5*g.M*res.vax*res.vax,depth=Math.min(p.tip,Eax/F_RES*1000);
 const l=(g.sCP-g.sCG)*1e-3,kw=0.5*RHO*p.v*p.v*g.eta*g.ae.S*g.ae.K1*l/g.I;
-out[i]={p:p,g:g,res:res,sc:sc,miss:miss,steck:-res.th/D,ang:p.ang/D,T:res.T,amax:amax/D,r90:r90,depth:depth,per:2*Math.PI/Math.sqrt(kw),cx:mx,cy:my};
+const wtot=(p.wp+GK*(g.sCG-p.grip)*(p.v/7))/D;
+out[i]={p:p,g:g,res:res,wtot:wtot,sc:sc,miss:miss,steck:-res.th/D,ang:p.ang/D,T:res.T,amax:amax/D,r90:r90,depth:depth,per:2*Math.PI/Math.sqrt(kw),cx:mx,cy:my};
 }
 function rating(o){
 const t=[];
@@ -212,7 +213,8 @@ const KPI=[
 ['Max. Anstellwinkel',o=>o.amax,v=>fmt(v,1)+'°','lo'],
 ['Steckwinkel',o=>o.steck,v=>fmt(v,1)+'°',''],
 ['Flugzeit',o=>o.T*1000,v=>fmt(v)+' ms',''],
-['Eindringtiefe',o=>o.depth,v=>fmt(v)+' mm','hi']
+['Eindringtiefe',o=>o.depth,v=>fmt(v)+' mm','hi'],
+['Nickrate Abwurf',o=>o.wtot,v=>fmt(v)+' °/s','']
 ];
 function labels(){
 const s=setups[act];
@@ -220,6 +222,8 @@ $('wto').textContent=fmt(s.wt,1)+' g';$('baro').textContent=fmt(s.bar,2)+' mm';$
 $('cgo').textContent=s.cg+' %';
 $('gro').textContent=s.grip+' mm';$('tipo').textContent=s.tip+' mm';$('sho').textContent=s.shaft+' mm';
 $('vo').textContent=fmt(+$('v').value,1)+' m/s';$('ho').textContent=fmt(+$('h').value,2)+' m';
+$('wpo').textContent=fmt(+$('wp').value)+' °/s';$('dlo').textContent=fmt(+$('dl').value,1)+'°';
+{const o=out[act],d=o.g.sCG-o.p.grip;$('grn').textContent='Griff '+fmt(Math.abs(d))+' mm '+(Math.abs(d)<3?'am':d>0?'vor dem':'hinter dem')+' Schwerpunkt → Griff-Anteil der Nickrate '+fmt(GK*d*(o.p.v/7)/D)+' °/s (grobe Annahme, siehe README).'}
 $('nA').textContent=lbl(0);$('nB').textContent=lbl(1);
 $('lgA').textContent='A '+lbl(0);$('lgB').textContent='B '+lbl(1);
 $('lgA').className='la '+(act===0?'act':'ghost');$('lgB').className='lb '+(act===1?'act':'ghost');
@@ -241,6 +245,8 @@ cell('rA',fmt(A.amax,1)+'°',fmt(B.amax,1)+'°');
 cell('rR',fmt(A.r90)+' mm',fmt(B.r90)+' mm');
 cell('rD',fmt(A.depth)+' mm',fmt(B.depth)+' mm');
 cell('rP',fmt(A.per,2)+' s',fmt(B.per,2)+' s');
+cell('rN',fmt(A.wtot)+' °/s',fmt(B.wtot)+' °/s');
+cell('rG',fmt(-A.res.gam/D,1)+'°',fmt(-B.res.gam/D,1)+'°');
 $('vA').textContent=rating(A);$('vB').textContent=rating(B);
 }
 
@@ -433,7 +439,7 @@ const d=byId(b.dataset.id);if(d)loadDart(d);
 $('brands').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;brandSel=b.dataset.b;renderBrands();renderList();$('list').scrollTop=0});
 const map={wt:'wt',bar:'bar',dia:'dia',cg:'cg',tip:'tip',sh:'shaft',gr:'grip'};
 Object.keys(map).forEach(id=>$(id).addEventListener('input',()=>{const s=setups[act];s.mod=s.mod||['wt','bar','dia','cg'].includes(id);s[map[id]]=+$(id).value;recompute()}));
-['v','h'].forEach(id=>$(id).addEventListener('input',recompute));
+['v','h','wp','dl'].forEach(id=>$(id).addEventListener('input',recompute));
 $('seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setups[act].shape=b.dataset.s;syncUI();recompute()});
 $('sA').addEventListener('click',()=>setAct(0));$('sB').addEventListener('click',()=>setAct(1));
 $('eA').addEventListener('click',()=>setAct(0));$('eB').addEventListener('click',()=>setAct(1));
