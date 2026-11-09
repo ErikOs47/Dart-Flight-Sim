@@ -1,12 +1,12 @@
 # Dart-Labor
 
-Web-App, um Steel-Tip-Darts **vor dem Kauf** per Flugsimulation zu vergleichen. Zwei Darts (A/B) wählen, Wurfgeschwindigkeit und Abwurfhöhe einstellen; die App wirft beide automatisch auf den Bull und zeigt Flugbahn, Steckwinkel, Flugruhe, Streuung und Eindringtiefe.
+Web-App, um Steel-Tip-Darts **vor dem Kauf** per Flugsimulation zu vergleichen. Zwei Darts (A/B) nach Marke und Modell wählen, dann Regler schieben: Flugbahn, Trefferbild und Kennwerte (Streuung, Flugruhe, Steckwinkel, Eindringtiefe) aktualisieren sich live direkt daneben. Die App wirft beide Darts automatisch auf den Bull.
 
 Reines HTML/CSS/JavaScript, keine Abhängigkeiten, kein Build.
 
 ## Starten
 
-`data/darts.json` wird per `fetch` geladen, deshalb über einen Webserver öffnen (nicht per Doppelklick/`file://`, sonst nur 6 Standard-Darts):
+Die Datenbank wird per `fetch` geladen, deshalb über einen Webserver öffnen (nicht per Doppelklick/`file://`, sonst nur 2 Beispiel-Darts):
 
 ```bash
 python3 -m http.server 8000
@@ -21,20 +21,26 @@ Online: In GitHub unter *Settings → Pages* „Deploy from a branch“, Branch 
 |---|---|
 | `index.html` | Oberfläche |
 | `style.css` | Layout, Hell/Dunkel-Modus |
-| `app.js` | Physikmodell, Vergleich, Zeichnungen, Dart-Liste |
-| `data/darts.json` | Dart-Datenbank (351 Einträge) |
+| `app.js` | Physikmodell, Vergleich, Zeichnungen, Dart-Auswahl |
+| `data/brands.json` | Markenverzeichnis (Name, Datei, Anzahl Darts/Modelle) |
+| `data/brands/<marke>.json` | Darts einer Marke, z. B. `harrows.json` |
 
-Eigene Darts („Speichern“) landen nur im `localStorage` des Browsers.
+Eigene Darts („Speichern“) landen nur im `localStorage` des Browsers und erscheinen unter der Marke „Eigene“.
+
+Neue Marke ergänzen: Datei `data/brands/<id>.json` mit `{"brand": "...", "darts": [...]}` anlegen und in `data/brands.json` eintragen.
 
 ## Datenbank
 
 351 Steel-Tip-Darts, ein Eintrag je Modell und Gewicht (Harrows 108, Red Dragon 91, Winmau 90, Target 49, Shot 4, Mission 3, Bullet 2, Bull's 2, Dynasty 1, Koto 1). Nur aktuelle Serien bzw. Pro-Modelle.
+
+Aufgeteilt nach Marke (eine Datei je Marke). In der App sind die Darts nach Marke → Modell → Gewicht gegliedert (160 Modelle).
 
 Felder je Eintrag:
 
 | Feld | Bedeutung |
 |---|---|
 | `id` | eindeutiger Schlüssel |
+| `model` | Modellname ohne Gewicht (gruppiert die Gewichte) |
 | `name`, `short` | Anzeigename lang/kurz |
 | `bw` | Barrel-Gewicht (g) |
 | `len` | Barrel-Länge (mm) |
