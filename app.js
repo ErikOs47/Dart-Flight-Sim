@@ -167,6 +167,8 @@ const SEED=[
 {id:'target-aspinall-g2-24',brand:'Target',model:'Target Nathan Aspinall G2',name:'Target Nathan Aspinall G2 (24 g)',short:'Aspinall G2',bw:24,len:50.05,dia:7.07,shape:'Torpedo',bal:'vorn',cg:40,url:SRC+'target-nathan-aspinall-g2-steel-tip-darts-24gm'},
 {id:'target-littler-g1-23',brand:'Target',model:'Target Luke Littler G1 Prodigy',name:'Target Luke Littler G1 Prodigy (23 g)',short:'Littler G1',bw:23,len:52,dia:6.5,shape:'Gerade',bal:'Mitte',cg:50,url:SRC+'target-luke-littler-g1-prodigy-swiss-point-steel-tip-darts-23gm'}
 ];
+// Bei jeder Änderung an App oder Daten erhöhen (auch ?v= in index.html), damit Browser keine alte Version aus dem Cache nehmen
+const DATA_V='4';
 const LS_KEY='dartlabor.custom.v1',OWN='Eigene';
 let brands=[],darts=SEED.slice(),custom=loadCustom(),brandSel='';
 function loadCustom(){try{const r=JSON.parse(localStorage.getItem(LS_KEY)||'[]');return Array.isArray(r)?r:[]}catch(e){return[]}}
@@ -284,7 +286,7 @@ o.res.frames.forEach((f,k)=>{k?c.lineTo(X(f.x),Y(f.y)):c.moveTo(X(f.x),Y(f.y))})
 });
 const ex=sy/sx;
 c.fillStyle=P.mid;c.font='11px '+FF;c.textAlign='left';
-c.fillText('Flugbahn seitlich'+(ex>1.3?' (Höhe '+fmt(ex)+'× überhöht)':''),6,13);
+c.fillText((W>300?'Flugbahn seitlich':'Flugbahn')+(ex>1.3?' (Höhe '+fmt(ex)+'×)':''),6,13);
 }
 // Ghost zuerst zeichnen, aktiven Dart obendrauf
 function order(){return act?[0,1]:[1,0]}
@@ -451,8 +453,8 @@ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',redraw)
 
 /* ---------- Start ---------- */
 setup();syncUI();renderBrands();renderList();recompute();
-fetch('data/brands.json').then(r=>{if(!r.ok)throw 0;return r.json()})
-.then(ix=>Promise.all(ix.brands.map(b=>fetch('data/'+b.file).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{j.darts.forEach(d=>d.brand=j.brand);return{info:b,darts:j.darts}}))))
+fetch('data/brands.json?v='+DATA_V).then(r=>{if(!r.ok)throw 0;return r.json()})
+.then(ix=>Promise.all(ix.brands.map(b=>fetch('data/'+b.file+'?v='+DATA_V).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{j.darts.forEach(d=>d.brand=j.brand);return{info:b,darts:j.darts}}))))
 .then(res=>{
 brands=res.map(r=>r.info);darts=[].concat.apply([],res.map(r=>r.darts));
 $('dbn').textContent='';renderBrands();renderList();
