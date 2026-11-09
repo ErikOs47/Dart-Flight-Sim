@@ -67,6 +67,15 @@ Quellen der Maße: Händlerangaben von [a-zdarts.com](https://a-zdarts.com) (138
 - **Streuung:** 24 Würfe mit fester Zufallsfolge (gleich für jeden Dart), gestört werden Abwurfwinkel, Seitenwinkel, Geschwindigkeit, Anstell-/Schiebewinkel, Nick-/Gierrate und Höhe. R90 = Radius um den Mittelpunkt, in dem 90 % liegen.
 - **Kennwerte:** Steckwinkel (Neigung beim Auftreffen), max. Anstellwinkel, Nickperiode (lineare Näherung), Eindringtiefe = axiale Energie / Eindringwiderstand.
 
+## Wovon hängt der Steckwinkel ab?
+
+Steckwinkel = Bahnwinkel am Board (wie steil die Flugbahn fällt) + Anstellwinkel des Darts in diesem Moment.
+
+1. **Bahnwinkel:** hängt an Geschwindigkeit und Höhenunterschied Abwurf–Ziel. Langsamer = höherer Bogen = steiler am Board (Atrax-Beispiel, Griff am Schwerpunkt: 6 m/s → ca. 17°, 8 m/s → ca. 8°, 10 m/s → ca. 3°).
+2. **Anstellwinkel am Board:** Der Dart pendelt im Flug um seine Flugrichtung (gedämpfte Schwingung, Periode ca. 0,3 s, bei 8 m/s also etwa eine Schwingung bis zum Board). Wie er am Board steht, hängt davon ab, wie stark die Schwingung beim Abwurf angestoßen wird (Nickrate, Anstellwinkel beim Abwurf, Griffposition) und wie schnell sie abklingt (Flight-Größe, Schwerpunkt, Länge). Eine starke Nickrate kann den Dart mit der Spitze nach oben ankommen lassen (negativer Steckwinkel), obwohl die Bahn fällt.
+
+James & Potts (2018) haben 225 Würfe von 19 Amateuren gefilmt: Median 6,0 m/s, Bahn 16,5° nach oben, Dart 19,4° (also +2,9° Anstellwinkel), Nickrate −412 °/s; Wellenlänge der Schwingung 2,16 m, Dämpfung 0,11.
+
 ## Annahmen (unsicher)
 
 | Größe | Wert | Anmerkung |
@@ -76,7 +85,8 @@ Quellen der Maße: Händlerangaben von [a-zdarts.com](https://a-zdarts.com) (138
 | Bull-Höhe | 1,73 m | Regelmaß |
 | Flight No.2 (Standard) | ca. 44 × 35 mm | Quellen uneinheitlich |
 | Flight No.6 (Slim) | ca. 44 × 24 mm | Quellen uneinheitlich |
-| Griff-Nickimpuls | 0,25 rad/s pro mm Abstand Griff–Schwerpunkt | grob geschätzt, Vorzeichen unsicher |
+| Griff-Nickimpuls | 0,25 rad/s (≈ 14 °/s) pro mm Abstand Griff–Schwerpunkt, Griff hinter Schwerpunkt → Spitze kippt nach unten | grob geschätzt; Griff 25 mm hinter dem Schwerpunkt ergibt ≈ −400 °/s, passt zur Größenordnung bei James & Potts |
+| Nickrate / Anstellwinkel beim Abwurf | Regler, Standard 0 | Amateur-Median: −412 °/s, +2,9° (James & Potts 2018) |
 | Eindringwiderstand | 50 N | geschätzt |
 | Schwerpunkt aus Balance | vorn 40 %, Mitte 50 %, hinten 58 % | Hersteller veröffentlichen keine Messwerte |
 | Referenz-Steckwinkel | ca. 8° | nicht gesichert |
@@ -87,7 +97,7 @@ Die Streuung (R90) hängt vor allem an der angenommenen Wurfstreuung, nicht am D
 
 - Dart-Maße: [a-zdarts.com](https://a-zdarts.com), [dartshopper.com](https://www.dartshopper.com)
 - Nickperiode/Flugstabilität: Windkanal-Messungen der TU Delft (Nickperiode ca. 0,3 s) als Plausibilitätscheck
-- Abwurfparameter (Geschwindigkeit, Winkel): Springer-Fachartikel zur Wurfbiomechanik im Darts
+- Abwurfparameter und Flugschwingung: D. James, J. Potts, *Experimental validation of dynamic stability analysis applied to dart flight*, Sports Engineering 21 (2018) 347–358, [doi:10.1007/s12283-018-0279-9](https://link.springer.com/article/10.1007/s12283-018-0279-9)
 - Weitere Hintergrundinfos zu Flights, Schäften und Balance: gameandentertain, SKIPJACK, DartsNutz, Target Darts
 
 ## Ideen

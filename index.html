@@ -7,7 +7,7 @@
 <meta name="description" content="Darts vor dem Kauf per Flugsimulation vergleichen.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600&family=Barlow:wght@400;500&display=swap">
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 <main>
@@ -49,6 +49,9 @@
 <h3>Wurf (beide Darts)</h3>
 <div class="row"><label for="v">Geschwindigkeit</label><input type="range" id="v" min="5" max="12" step="0.1" value="8"><output id="vo"></output></div>
 <div class="row"><label for="h">Abwurfhöhe</label><input type="range" id="h" min="1.4" max="1.9" step="0.01" value="1.65"><output id="ho"></output></div>
+<div class="row"><label for="wp">Nickrate beim Abwurf</label><input type="range" id="wp" min="-900" max="300" step="10" value="0"><output id="wpo"></output></div>
+<div class="row"><label for="dl">Anstellwinkel beim Abwurf</label><input type="range" id="dl" min="-10" max="10" step="0.5" value="0"><output id="dlo"></output></div>
+<p class="note">Nickrate: wie schnell die Spitze beim Loslassen kippt (minus = Spitze nach unten), z. B. aus dem Handgelenk. Anstellwinkel: Spitze zeigt beim Loslassen höher (+) oder tiefer (−) als die Flugrichtung. Messwerte von Amateuren (Median): −412 °/s und +2,9° (James &amp; Potts 2018).</p>
 </div>
 
 <div class="grp">
@@ -58,6 +61,7 @@
 <div class="row"><label for="wt">Barrel-Gewicht</label><input type="range" id="wt" min="16" max="30" step="0.5" value="24"><output id="wto"></output></div>
 <div class="row"><label for="cg">Schwerpunkt</label><input type="range" id="cg" min="30" max="70" step="1" value="40"><output id="cgo"></output></div>
 <div class="row"><label for="gr">Griff ab Barrelende</label><input type="range" id="gr" min="0" max="40" step="1" value="24"><output id="gro"></output></div>
+<p class="note" id="grn"></p>
 <div class="row"><label for="sh">Schaftlänge</label><input type="range" id="sh" min="10" max="50" step="1" value="30"><output id="sho"></output></div>
 <div class="seg" id="seg"><button data-s="n2" aria-pressed="true">Flight No.2 (Standard)</button><button data-s="n6" aria-pressed="false">Flight No.6 (Slim)</button></div>
 <details class="more"><summary>Mehr Maße</summary>
@@ -86,6 +90,8 @@
 <div class="k">Steckwinkel</div><div id="rKA"></div><div id="rKB"></div>
 <div class="k">Max. Anstellwinkel</div><div id="rAA"></div><div id="rAB"></div>
 <div class="k">Nickperiode</div><div id="rPA"></div><div id="rPB"></div>
+<div class="k">Nickrate Abwurf gesamt</div><div id="rNA"></div><div id="rNB"></div>
+<div class="k">Bahnwinkel am Board</div><div id="rGA"></div><div id="rGB"></div>
 <div class="k">Streuung (R90)</div><div id="rRA"></div><div id="rRB"></div>
 <div class="k">Eindringtiefe</div><div id="rDA"></div><div id="rDB"></div>
 </div>
@@ -95,6 +101,6 @@
 </details>
 </section>
 </main>
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>
