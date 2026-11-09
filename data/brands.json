@@ -1,0 +1,74 @@
+{
+ "brands": [
+  {
+   "id": "harrows",
+   "brand": "Harrows",
+   "file": "brands/harrows.json",
+   "count": 108,
+   "models": 35
+  },
+  {
+   "id": "reddragon",
+   "brand": "Red Dragon",
+   "file": "brands/reddragon.json",
+   "count": 91,
+   "models": 46
+  },
+  {
+   "id": "winmau",
+   "brand": "Winmau",
+   "file": "brands/winmau.json",
+   "count": 90,
+   "models": 47
+  },
+  {
+   "id": "target",
+   "brand": "Target",
+   "file": "brands/target.json",
+   "count": 49,
+   "models": 24
+  },
+  {
+   "id": "shot",
+   "brand": "Shot",
+   "file": "brands/shot.json",
+   "count": 4,
+   "models": 2
+  },
+  {
+   "id": "mission",
+   "brand": "Mission",
+   "file": "brands/mission.json",
+   "count": 3,
+   "models": 1
+  },
+  {
+   "id": "bullet",
+   "brand": "Bullet",
+   "file": "brands/bullet.json",
+   "count": 2,
+   "models": 2
+  },
+  {
+   "id": "bulls",
+   "brand": "Bull's",
+   "file": "brands/bulls.json",
+   "count": 2,
+   "models": 1
+  },
+  {
+   "id": "dynasty",
+   "brand": "Dynasty",
+   "file": "brands/dynasty.json",
+   "count": 1,
+   "models": 1
+  },
+  {
+   "id": "koto",
+   "brand": "Koto",
+   "file": "brands/koto.json",
+   "count": 1,
+   "models": 1
+  }
+ ]
+}

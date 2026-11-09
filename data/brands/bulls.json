@@ -1,0 +1,31 @@
+{
+ "brand": "Bull's",
+ "darts": [
+  {
+   "id": "bulls-shark-pro-black-22",
+   "model": "Bull's Shark Pro Black 90%",
+   "bal": "vorn",
+   "bw": 22,
+   "cg": 40,
+   "dia": 6.95,
+   "len": 48.3,
+   "name": "Bull's Shark Pro Black 90% (22 g)",
+   "shape": "Konisch",
+   "short": "Shark Pro Black 22 g",
+   "url": "https://www.dartshopper.com/bulls-shark-pro-black-90/"
+  },
+  {
+   "id": "bulls-shark-pro-black-25",
+   "model": "Bull's Shark Pro Black 90%",
+   "bal": "vorn",
+   "bw": 25,
+   "cg": 40,
+   "dia": 7.45,
+   "len": 48,
+   "name": "Bull's Shark Pro Black 90% (25 g)",
+   "shape": "Konisch",
+   "short": "Shark Pro Black 25 g",
+   "url": "https://www.dartshopper.com/bulls-shark-pro-black-90/"
+  }
+ ]
+}

@@ -1,0 +1,57 @@
+{
+ "brand": "Shot",
+ "darts": [
+  {
+   "id": "shot-smith-series2-23",
+   "model": "Shot Michael Smith Series II",
+   "bal": "Mitte",
+   "bw": 23,
+   "cg": 47,
+   "dia": 6.6,
+   "len": 49,
+   "name": "Shot Michael Smith Series II (23 g)",
+   "shape": "Gerade",
+   "short": "Smith Series II",
+   "url": "https://a-zdarts.com/products/shot-michael-smith-series-ll-steel-tip-darts-23gm"
+  },
+  {
+   "id": "shot-tribal-weapon-4-22",
+   "model": "Shot Tribal Weapon 4 90%",
+   "bal": "vorn",
+   "bw": 22,
+   "cg": 40,
+   "dia": 7.4,
+   "len": 48,
+   "name": "Shot Tribal Weapon 4 90% (22 g)",
+   "shape": "Konisch, gewellt",
+   "short": "Tribal Weapon 4 22 g",
+   "url": "https://www.dartshopper.com/shot-tribal-weapon-4-90/"
+  },
+  {
+   "id": "shot-tribal-weapon-4-24",
+   "model": "Shot Tribal Weapon 4 90%",
+   "bal": "vorn",
+   "bw": 24,
+   "cg": 40,
+   "dia": 7.5,
+   "len": 49,
+   "name": "Shot Tribal Weapon 4 90% (24 g)",
+   "shape": "Konisch, gewellt",
+   "short": "Tribal Weapon 4 24 g",
+   "url": "https://www.dartshopper.com/shot-tribal-weapon-4-90/"
+  },
+  {
+   "id": "shot-tribal-weapon-4-26",
+   "model": "Shot Tribal Weapon 4 90%",
+   "bal": "vorn",
+   "bw": 26,
+   "cg": 40,
+   "dia": 7.7,
+   "len": 50,
+   "name": "Shot Tribal Weapon 4 90% (26 g)",
+   "shape": "Konisch, gewellt",
+   "short": "Tribal Weapon 4 26 g",
+   "url": "https://www.dartshopper.com/shot-tribal-weapon-4-90/"
+  }
+ ]
+}
