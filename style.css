@@ -91,6 +91,7 @@ canvas{display:block;width:100%;border:1px solid var(--line);border-radius:8px;b
 .row label{color:var(--muted);font-size:13px}.row output{text-align:right;font-variant-numeric:tabular-nums}
 input[type=range]{width:100%;accent-color:var(--act,var(--ca))}
 .ctl.edB{--act:var(--cb)}
+.refrow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:2px 0 4px;font-size:13px;color:var(--muted)}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
 .seg button{font-size:13px;padding:6px}
 .seg button[aria-pressed="true"]{background:var(--sel);border-color:var(--act,var(--ca))}

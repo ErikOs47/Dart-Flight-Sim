@@ -16,6 +16,7 @@ const CG='#1D9E75',CPC='#BA7517';
 const PH=window.DartPhys,D=PH.D,RHO=PH.RHO,YB=PH.YB,GK=PH.GK,F_RES=PH.F_RES,K_SCATTER=PH.K_SCATTER,shapeFor=PH.shapeFor,geom=PH.geom,sim3=PH.sim3,solveAng=PH.solveAng,scatter=PH.scatter;
 const FF="Barlow,system-ui,sans-serif";
 
+const sgn=(x,d)=>(Math.abs(x)<0.5*Math.pow(10,-(d||0))?'±':x>0?'+':'−')+fmt(Math.abs(x),d);
 const fmt=(x,d)=>x.toLocaleString('de-DE',{minimumFractionDigits:d||0,maximumFractionDigits:d||0});
 
 /* ---------- Dart-Datenbank (nach Marken, data/brands/*.json) ---------- */
@@ -26,7 +27,7 @@ const SEED=[
 {id:'target-littler-g1-23',brand:'Target',model:'Target Luke Littler G1 Prodigy',name:'Target Luke Littler G1 Prodigy (23 g)',short:'Littler G1',bw:23,len:52,dia:6.5,shape:'Gerade',bal:'Mitte',cg:50,url:SRC+'target-luke-littler-g1-prodigy-swiss-point-steel-tip-darts-23gm'}
 ];
 // Bei jeder Änderung an App oder Daten erhöhen (auch ?v= in index.html), damit Browser keine alte Version aus dem Cache nehmen
-const DATA_V='7';
+const DATA_V='8';
 const LS_KEY='dartlabor.custom.v1',OWN='Eigene';
 let brands=[],darts=SEED.slice(),custom=loadCustom(),brandSel='';
 function loadCustom(){try{const r=JSON.parse(localStorage.getItem(LS_KEY)||'[]');return Array.isArray(r)?r:[]}catch(e){return[]}}
@@ -42,20 +43,28 @@ function fromDart(d){return Object.assign({},BASE,{dartId:d.id,name:d.short||d.n
 let setups=[fromDart(SEED[0]),fromDart(SEED[1])],act=0,out=[null,null];
 function fit(cv,h){const dpr=window.devicePixelRatio||1,w=cv.clientWidth||300;cv.style.height=h+'px';cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);return{c:c,W:w,H:h}}
 function build(s){const p={wt:s.wt,bar:s.bar,dia:s.dia,cg:s.cg,tip:s.tip,shaft:s.shaft,shape:s.shape,size:s.size,wear:0,grip:0,ang:0,h:+$('h').value,v:+$('v').value,xb:+$('xb').value,psi:0,delta:+$('dl').value*D,eps:0,wp:+$('wp').value*D,wy:0,spin:5*2*Math.PI,wind:0};p.grip=p.tip+p.bar-Math.min(s.grip,p.bar);return p}
-function calc(i){
-const p=build(setups[i]);p.ang=solveAng(p,0.0005);
-const res=sim3(p,true),g=geom(p),miss=Math.abs(res.y-YB)>0.01;
+// Gleicher Wurf für beide Darts: Abwurfwinkel so, dass der Ziel-Dart (ref) den Bull trifft; der andere fliegt mit demselben Winkel
+let ref=0,refMiss=false;
+function calcAll(){
+const pr=build(setups[ref]);const ang=solveAng(pr,0.0005);
+refMiss=Math.abs(sim3(pr,false,0.0005).y-YB)>0.01;
+calc(0,ang);calc(1,ang);
+}
+function calc(i,ang){
+const p=build(setups[i]);p.ang=ang;
+const res=sim3(p,true),g=geom(p),miss=refMiss;
 let amax=0;res.frames.forEach(f=>{if(f.at>amax)amax=f.at});
 const sc=scatter(p,K_SCATTER);let mx=0,my=0;sc.forEach(q=>{mx+=q[0];my+=q[1]});mx/=sc.length;my/=sc.length;
 const d=sc.map(q=>Math.hypot(q[0]-mx,q[1]-my)).sort((a,b)=>a-b),r90=d[Math.floor(0.9*(d.length-1))];
 const Eax=0.5*g.M*res.vax*res.vax,depth=Math.min(p.tip,Eax/F_RES*1000);
 const l=(g.sCP-g.sCG)*1e-3,kw=0.5*RHO*p.v*p.v*g.eta*g.ae.S*g.ae.K1*l/g.I;
 const wtot=(p.wp+GK*(g.sCG-p.grip)*(p.v/7))/D;
-out[i]={p:p,g:g,res:res,wtot:wtot,sc:sc,miss:miss,steck:-res.th/D,ang:p.ang/D,T:res.T,amax:amax/D,r90:r90,depth:depth,per:2*Math.PI/Math.sqrt(kw),cx:mx,cy:my};
+out[i]={dy:(res.y-YB)*1000,p:p,g:g,res:res,wtot:wtot,sc:sc,miss:miss,steck:-res.th/D,ang:p.ang/D,T:res.T,amax:amax/D,r90:r90,depth:depth,per:2*Math.PI/Math.sqrt(kw),cx:mx,cy:my};
 }
 function rating(o){
 const t=[];
 if(o.miss)t.push('Bull bei dieser Geschwindigkeit nicht erreichbar.');
+else if(Math.abs(o.dy)>=0.5)t.push('Trifft bei gleichem Wurf '+fmt(Math.abs(o.dy),1)+' mm '+(o.dy>0?'höher':'tiefer')+' als der Bull.');
 if(o.steck<1)t.push('Steckwinkel unter 1°: Flight steht fast waagerecht oder hängt nach unten.');
 else if(o.steck>15)t.push('Steckwinkel über 15°: Dart steckt sehr steil.');
 else t.push('Steckwinkel im üblichen Bereich (1–15°).');
@@ -72,7 +81,8 @@ const KPI=[
 ['Steckwinkel',o=>o.steck,v=>fmt(v,1)+'°',''],
 ['Flugzeit',o=>o.T*1000,v=>fmt(v)+' ms',''],
 ['Eindringtiefe',o=>o.depth,v=>fmt(v)+' mm','hi'],
-['Nickrate Abwurf',o=>o.wtot,v=>fmt(v)+' °/s','']
+['Nickrate Abwurf',o=>o.wtot,v=>fmt(v)+' °/s',''],
+['Treffhöhe zum Bull',o=>o.dy,v=>sgn(v,1)+' mm','']
 ];
 function labels(){
 const s=setups[act];
@@ -82,6 +92,7 @@ $('gro').textContent=s.grip+' mm';$('tipo').textContent=s.tip+' mm';$('sho').tex
 $('vo').textContent=fmt(+$('v').value,1)+' m/s';$('ho').textContent=fmt(+$('h').value,2)+' m';$('xbo').textContent=fmt(+$('xb').value,2)+' m';
 $('wpo').textContent=fmt(+$('wp').value)+' °/s';$('dlo').textContent=fmt(+$('dl').value,1)+'°';
 {const o=out[act],d=o.g.sCG-o.p.grip;$('grn').textContent='Griff '+fmt(Math.abs(d))+' mm '+(Math.abs(d)<3?'am':d>0?'vor dem':'hinter dem')+' Schwerpunkt → Griff-Anteil der Nickrate '+fmt(GK*d*(o.p.v/7)/D)+' °/s (grobe Annahme, siehe README).'}
+$('rfn').textContent='Abwurfwinkel '+fmt(out[0].ang,1)+'°: so eingestellt, dass Dart '+(ref?'B':'A')+' den Bull trifft. Dart '+(ref?'A':'B')+' fliegt mit exakt demselben Wurf.';
 $('nA').textContent=lbl(0);$('nB').textContent=lbl(1);
 $('lgA').textContent='A '+lbl(0);$('lgB').textContent='B '+lbl(1);
 $('lgA').className='la '+(act===0?'act':'ghost');$('lgB').className='lb '+(act===1?'act':'ghost');
@@ -104,6 +115,7 @@ cell('rR',fmt(A.r90)+' mm',fmt(B.r90)+' mm');
 cell('rD',fmt(A.depth)+' mm',fmt(B.depth)+' mm');
 cell('rP',fmt(A.per,2)+' s',fmt(B.per,2)+' s');
 cell('rN',fmt(A.wtot)+' °/s',fmt(B.wtot)+' °/s');
+cell('rH',sgn(A.dy,1)+' mm',sgn(B.dy,1)+' mm');
 cell('rG',fmt(-A.res.gam/D,1)+'°',fmt(-B.res.gam/D,1)+'°');
 $('vA').textContent=rating(A);$('vB').textContent=rating(B);
 }
@@ -115,7 +127,7 @@ const wide=()=>matchMedia('(min-width:860px)').matches;
 function setup(){
 if(wide()){FL=fit($('fl'),170);BD=fit($('bd'),260);AA=fit($('aa'),120)}
 else{FL=fit($('fl'),105);BD=fit($('bd'),105);AA=fit($('aa'),78)}
-DT=fit($('dt'),110);ED=fit($('ed'),wide()?220:120);
+DT=fit($('dt'),110);ED=fit($('ed'),wide()?250:170);
 }
 function rad(t,b,rr){return rr*(3.4+0.9*b*(1-2*t))}
 function drawBody(c,p,g,sc){
@@ -217,10 +229,37 @@ c.fillText('Steckwinkel '+fmt(o.steck,1)+'°',ax-8,ay+(o.steck>=0?20:-12));
 }
 c.globalAlpha=1;
 });
+drawHeights(c,W,H);
 const g=out[1-act];
 c.fillStyle=P.mid;c.font='11px '+FF;c.textAlign='left';
 c.fillText('Endlage von der Seite (maßstabsgetreu)',6,13);
 c.fillText((act?'A':'B')+' (Ghost): '+fmt(g.steck,1)+'°, Eindringtiefe '+fmt(g.depth)+' mm',6,H-6);
+}
+// Treffhöhe vergrößert: wo die Spitzen bei gleichem Wurf relativ zum Bull einstecken (mm)
+function niceMax(v){const st=[2,3,5,10,20,30,50,100,200,500,1000];for(const q of st)if(v<=q)return q;return Math.ceil(v/1000)*1000}
+function drawHeights(c,W,H){
+// Kasten zwischen Titelzeile (oben) und Ghost-Zeile (unten)
+const w=W<420?104:132,x0=6,y0=20,h=H-42,ax=x0+(W<420?34:40),top=y0+22,bot=y0+h-10;
+const M=niceMax(Math.max(Math.abs(out[0].dy),Math.abs(out[1].dy))*1.25),Y=v=>top+(bot-top)*(0.5-v/(2*M));
+c.save();
+c.globalAlpha=0.9;c.fillStyle=getComputedStyle(document.body).backgroundColor||'#fff';c.fillRect(x0,y0,w,h);c.globalAlpha=1;
+c.strokeStyle=P.faint;c.lineWidth=1;c.strokeRect(x0+0.5,y0+0.5,w-1,h-1);
+c.fillStyle=P.ink;c.font='600 11px '+FF;c.textAlign='left';c.fillText('Treffhöhe',x0+5,y0+13);
+c.fillStyle=P.mid;c.font='10px '+FF;c.textAlign='right';if(W>=420)c.fillText('vergrößert',x0+w-5,y0+13);
+// Achse mit Skala
+c.strokeStyle=P.mid;c.lineWidth=1;c.beginPath();c.moveTo(ax,Y(M));c.lineTo(ax,Y(-M));c.stroke();
+c.textAlign='right';
+[M,-M].concat(bot-top>90?[M/2,-M/2]:[]).forEach(v=>{c.beginPath();c.moveTo(ax-3,Y(v));c.lineTo(ax+3,Y(v));c.stroke();c.fillText((v>0?'+':'−')+fmt(Math.abs(v),M<5?1:0),ax-5,Y(v)+3)});
+c.strokeStyle='#D85A30';c.lineWidth=1.5;c.beginPath();c.moveTo(ax-6,Y(0));c.lineTo(ax+6,Y(0));c.stroke();
+c.fillStyle='#D85A30';c.fillText('Bull',ax-5,Y(0)+3);
+// Treffpunkte; Beschriftung rechts, bei Überlappung auseinanderschieben
+const yA=Y(out[0].dy),yB=Y(out[1].dy);let lA=yA,lB=yB;
+if(Math.abs(lA-lB)<13){const m=(lA+lB)/2,o=lA<=lB?-6.5:6.5;lA=m+o;lB=m-o}
+[[0,yA,lA],[1,yB,lB]].forEach(q=>{const i=q[0],o=out[i];
+c.globalAlpha=i===act?1:0.75;c.fillStyle=COL[i];c.strokeStyle=COL[i];c.lineWidth=1.8;
+c.beginPath();c.arc(ax,q[1],4,0,7);i?c.stroke():c.fill();
+c.font=(i===act?'600 ':'')+'11px '+FF;c.textAlign='left';c.fillText((i?'B ':'A ')+sgn(o.dy,1)+' mm',ax+9,q[2]+4);c.globalAlpha=1});
+c.restore();
 }
 function drawDarts(){
 const c=DT.c,W=DT.W,H=DT.H;c.clearRect(0,0,W,H);
@@ -242,7 +281,8 @@ c.fillStyle=P.mid;c.font='10px '+FF;c.textAlign='right';c.fillText('● Schwerpu
 function drawBoard(){
 const c=BD.c,W=BD.W,H=BD.H;c.clearRect(0,0,W,H);
 // Ausschnitt: ±60 mm um den Bull (Single-Bull bis Triple-Ring)
-const R=60,s=(Math.min(W,H)/2-4)/R,cx=W/2,cy=H/2,X=z=>cx+z*s,Y=y=>cy-y*s;
+let R=60;out.forEach(o=>o.sc.forEach(q=>{R=Math.max(R,Math.abs(q[0])+6,Math.abs(q[1])+6)}));R=Math.ceil(R/10)*10;
+const s=(Math.min(W,H)/2-4)/R,cx=W/2,cy=H/2,X=z=>cx+z*s,Y=y=>cy-y*s;
 c.save();c.beginPath();c.rect(0,0,W,H);c.clip();
 c.strokeStyle=P.faint;c.lineWidth=1;
 [6.35,15.9,99,107].forEach(r=>{c.beginPath();c.arc(cx,cy,r*s,0,7);c.stroke()});
@@ -253,12 +293,12 @@ c.globalAlpha=0.8;c.fillStyle=COL[i];c.strokeStyle=COL[i];c.lineWidth=1.3;o.sc.f
 c.strokeStyle=COL[i];c.lineWidth=1.4;c.setLineDash(i?[4,3]:[]);c.beginPath();c.arc(X(o.cx),Y(o.cy),o.r90*s,0,7);c.stroke();c.setLineDash([]);
 });
 c.restore();
-c.fillStyle=P.mid;c.font='11px '+FF;c.textAlign='left';c.fillText(W>200?'Trefferbild (±60 mm): 24 Würfe je Dart, A ● B ○, Kreis = 90 %':'Trefferbild',6,13);
+c.fillStyle=P.mid;c.font='11px '+FF;c.textAlign='left';c.fillText(W>200?'Trefferbild (±'+R+' mm): 24 Würfe je Dart, gleicher Wurf, A ● B ○, Kreis = 90 %':'Trefferbild',6,13);
 }
 function redraw(){pal();drawEnd();drawFlight();drawAlpha();drawDarts();drawBoard()}
 // Neuberechnung höchstens einmal pro Frame, damit die Regler flüssig bleiben
 let pending=false;
-function recompute(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;pal();calc(0);calc(1);labels();redraw();markLoaded();saveState();notify()})}
+function recompute(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;pal();calcAll();labels();redraw();markLoaded();saveState();notify()})}
 
 /* ---------- Bedienung ---------- */
 function setAct(i){
@@ -321,6 +361,8 @@ const map={wt:'wt',bar:'bar',dia:'dia',cg:'cg',tip:'tip',sh:'shaft',gr:'grip'};
 Object.keys(map).forEach(id=>$(id).addEventListener('input',()=>{const s=setups[act];s.mod=s.mod||['wt','bar','dia','cg'].includes(id);s[map[id]]=+$(id).value;recompute()}));
 const THROW=['v','h','xb','wp','dl'];
 THROW.forEach(id=>$(id).addEventListener('input',recompute));
+function setRef(i){ref=i;$('rf').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.r===i?'true':'false'))}
+$('rf').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setRef(+b.dataset.r);recompute()});
 $('seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setups[act].shape=b.dataset.s;syncUI();recompute()});
 // Dart-Suche nur zeigen, wenn Platz A oder B angetippt wird; erneutes Tippen auf denselben Platz schließt sie
 let pickOpen=false;
@@ -357,7 +399,7 @@ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',redraw)
 /* ---------- Zustand merken (localStorage) ---------- */
 const ST_KEY='dartlabor.state.v1';
 function saveState(){
-try{const th={};THROW.forEach(id=>th[id]=+$(id).value);localStorage.setItem(ST_KEY,JSON.stringify({setups:setups,act:act,th:th,meas:meas}))}catch(e){}
+try{const th={};THROW.forEach(id=>th[id]=+$(id).value);localStorage.setItem(ST_KEY,JSON.stringify({setups:setups,act:act,ref:ref,th:th,meas:meas}))}catch(e){}
 }
 function loadState(){
 try{
@@ -365,6 +407,7 @@ const st=JSON.parse(localStorage.getItem(ST_KEY)||'null');if(!st)return;
 const num=['wt','bar','dia','cg','tip','shaft','size','grip'];
 if(Array.isArray(st.setups)&&st.setups.length===2&&st.setups.every(q=>q&&num.every(k=>isFinite(q[k]))&&BASES_OK(q.shape)))setups=st.setups;
 if(st.act===1)act=1;
+if(st.ref===1)setRef(1);
 if(st.th)THROW.forEach(id=>{if(isFinite(st.th[id]))$(id).value=st.th[id]});
 if(st.meas&&Array.isArray(st.meas.pts))meas=st.meas;
 }catch(e){}
