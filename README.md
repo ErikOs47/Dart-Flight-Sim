@@ -2,6 +2,8 @@
 
 Web-App, um Steel-Tip-Darts **vor dem Kauf** per Flugsimulation zu vergleichen. Zwei Darts (A/B) nach Marke und Modell wählen, dann Regler schieben: Flugbahn, Trefferbild und Kennwerte (Streuung, Flugruhe, Steckwinkel, Eindringtiefe) aktualisieren sich live direkt daneben. Die App wirft beide Darts automatisch auf den Bull. Die Endlage zeigt beide Darts maßstabsgetreu von der Seite im Board, mit Spitzenbahn, Steckwinkel und Eindringtiefe; der gerade eingestellte Dart ist hervorgehoben, der andere als Ghost.
 
+Den eigenen Wurf kann man per Video messen (Abschnitt 2 der App): Wurf von der Seite filmen, Dart in einigen Bildern markieren, die App berechnet Geschwindigkeit, Abwurfwinkel, Anstellwinkel, Nickrate, Abwurfhöhe und Abstand und übernimmt sie in die Simulation.
+
 Reines HTML/CSS/JavaScript, keine Abhängigkeiten, kein Build.
 
 ## Starten
@@ -21,11 +23,17 @@ Online: In GitHub unter *Settings → Pages* „Deploy from a branch“, Branch 
 |---|---|
 | `index.html` | Oberfläche |
 | `style.css` | Layout, Hell/Dunkel-Modus |
-| `app.js` | Physikmodell, Vergleich, Zeichnungen, Dart-Auswahl |
+| `physics.js` | Physikmodell (ohne DOM, auch in Node lauffähig) |
+| `measure.js` | Wurfmessung: Auswertung der Marken, Bildverfolgung (ohne DOM) |
+| `app.js` | Vergleich, Zeichnungen, Dart-Auswahl, Regler |
+| `video.js` | Oberfläche der Video-Messung |
+| `test/run.js` | Rechentests: `node test/run.js` |
 | `data/brands.json` | Markenverzeichnis (Name, Datei, Anzahl Darts/Modelle) |
 | `data/brands/<marke>.json` | Darts einer Marke, z. B. `harrows.json` |
 
 Eigene Darts („Speichern“) landen nur im `localStorage` des Browsers und erscheinen unter der Marke „Eigene“.
+
+Auswahl, Reglerstellungen und gemerkte Würfe bleiben ebenfalls im `localStorage`.
 
 Nach Änderungen an App oder Daten `DATA_V` in `app.js` und `?v=` in `index.html` erhöhen, sonst zeigen Browser (v. a. Safari) noch die alte Version aus dem Cache.
 
@@ -55,15 +63,39 @@ Felder je Eintrag:
 
 Quellen der Maße: Händlerangaben von [a-zdarts.com](https://a-zdarts.com) (138 Einträge) und [dartshopper.com](https://www.dartshopper.com) (213 Einträge), Harrows Atrax von [harrowsdarts.com](https://harrowsdarts.com/products/atrax-95) und [dartsonline.com.au](https://www.dartsonline.com.au/products/harrows-atrax-95-tungsten-steel-tip-darts) (6 Einträge), Link je Dart in der App.
 
+## Wurf per Video messen
+
+**Aufnahme:** genau von der Seite (Kamera im rechten Winkel zur Wurflinie, auf Abwurfhöhe, Handy gerade), Zeitlupe mit 120 oder 240 Bildern/s, viel Licht. Im Bild: Hand beim Loslassen und mindestens der erste halbe Meter Flug; für Abwurfhöhe und Abstand zusätzlich der Bull.
+
+**Ablauf in der App:**
+
+1. Video aufnehmen oder wählen. Die Bildrate der Datei wird erkannt; bei Zeitlupe die echte Aufnahme-Bildrate eintragen (z. B. 240).
+2. Zum ersten Bild nach dem Loslassen blättern, Spitze und Flight-Ende antippen (Zoom mit Mausrad, Zwei-Finger-Geste oder +/−). Mindestens 3 Bilder, besser 5 bis 10. Das früheste markierte Bild gilt als Abwurf.
+3. Optional „Automatisch weiterverfolgen“: ab zwei von Hand markierten Bildern sucht die App den Dart in den folgenden Bildern selbst.
+4. Optional Maßstab (Referenzstrecke, sonst Dartlänge) und Höhenpunkt (Bull-Mitte) setzen.
+5. „In die Simulation übernehmen“ oder mehrere Würfe merken und den Mittelwert übernehmen. Die Messpunkte erscheinen als □ in Flugbahn und Anstellwinkel-Diagramm, so sieht man, wie gut die Simulation den echten Wurf trifft.
+
+**Rechnung (`measure.js`):**
+
+- Schwerpunkt je Bild aus Spitze und Flight-Ende (Lage des Schwerpunkts aus dem aktiven Dart).
+- Geschwindigkeit und Abwurfwinkel: Ausgleichsgerade für x(t), für y(t) mit bekannter Fallbeschleunigung, über die ersten 120 ms.
+- Dartwinkel und Nickrate: Parabel (ab 6 Bildern, sonst Gerade) durch den Dartwinkel der ersten 50 ms, Wert und Steigung bei t = 0. Anstellwinkel = Dartwinkel − Abwurfwinkel.
+- Nickraten-Regler = gemessene Nickrate − Griff-Anteil des aktiven Darts; so bleibt der Griff-Effekt für den Vergleichsdart erhalten.
+- Verfolgung: Doppel-Differenzbild (Minimum der Differenzen zu einem früheren und einem späteren Bild), Schwerpunkt und Hauptachse der bewegten Pixel in einem Suchfeld längs der vorhergesagten Dartachse; Spitze = Flight-Ende + bekannte Dartlänge. Unplausible Treffer brechen die Verfolgung ab.
+
+**Geprüft** nur mit einem synthetischen Video (aus der Simulation gerendert, 240 Bilder/s, Dart 75 px lang, 4 Bilder von Hand, 78 automatisch): v 6,24 statt 6,20 m/s, Abwurfwinkel 19,0° statt 19,7°, Anstellwinkel 2,4° statt 3,0°, Nickrate −405 statt −358 °/s, Höhe 1,66 statt 1,65 m. Mit echten Handyvideos (Wischer, Kompression, Perspektive) ist die Messung ungenauer; die Verfolgung ist dort nicht erprobt.
+
+**Grenzen:** Bei 30 Bildern/s bewegt sich der Dart je Bild um ca. 20 cm und ist verwischt, Nickrate und Anstellwinkel sind dann nicht messbar. Schräge Kamera, Weitwinkel-Verzeichnung und eine Referenzstrecke außerhalb der Wurfebene verfälschen Strecken und Winkel. Seitliche Abweichungen (Gieren) sieht die Seitenansicht nicht. Ein einzelner Wurf ist nicht repräsentativ, deshalb mehrere mitteln.
+
 ## Modell
 
-3D-Starrkörper, explizite Integration (Δt 0,5 ms; Streuwürfe 1 ms) vom Abwurf bis zur Board-Ebene.
+3D-Starrkörper, explizite Integration (Δt 0,5 ms; Streuwürfe 1 ms) vom Abwurf, bis die Spitze die Board-Ebene erreicht.
 
 - **Geometrie/Masse:** Spitze, Barrel (Masse am Schwerpunkt `cg`), Schaft, Flight als Einzelmassen → Gesamtschwerpunkt, Längs- und Quer-Trägheitsmoment.
 - **Flight-Aerodynamik:** Umriss als Polygon; Auftriebsanstieg nach Streckung (Helmbold-Näherung) mit Rumpf-Interferenzfaktor; Druckpunkt per Streifentheorie (c/4 je Streifen); zusätzlich Querwiderstand der Platte (C_D 1,17).
 - **Rumpf:** Querkraft der Zylinder (C_D 1,1), Stirnwiderstand der Barrel-Stufe (C_D 0,9), Hautreibung laminar (Blasius 1,328/√Re) für alle Teile.
 - **Momente:** Rückstellmoment Flight und Rumpf, Nickdämpfung über Anströmung am Druckpunkt (ω × Hebelarm), Rolldämpfung des Drall, Nachlauf-Abschwächung des Flights durch das Barrel.
-- **Wurf:** Abwurfwinkel wird je Dart per Sekantenverfahren so gesucht, dass der Bull getroffen wird. Drall 5 U/s.
+- **Wurf:** Abwurfwinkel wird je Dart per Sekantenverfahren so gesucht, dass die Spitze den Bull trifft. Drall 5 U/s.
 - **Streuung:** 24 Würfe mit fester Zufallsfolge (gleich für jeden Dart), gestört werden Abwurfwinkel, Seitenwinkel, Geschwindigkeit, Anstell-/Schiebewinkel, Nick-/Gierrate und Höhe. R90 = Radius um den Mittelpunkt, in dem 90 % liegen.
 - **Kennwerte:** Steckwinkel (Neigung beim Auftreffen), max. Anstellwinkel, Nickperiode (lineare Näherung), Eindringtiefe = axiale Energie / Eindringwiderstand.
 
@@ -81,7 +113,7 @@ James & Potts (2018) haben 225 Würfe von 19 Amateuren gefilmt: Median 6,0 m/s, 
 | Größe | Wert | Anmerkung |
 |---|---|---|
 | Luftdichte | 1,204 kg/m³ | 20 °C, Meereshöhe |
-| Wurfdistanz | 2,2 m | Abwurf bis Board, ca. Oche 2,37 m minus Armreichweite |
+| Wurfdistanz | Regler, Standard 2,2 m | Schwerpunkt beim Abwurf bis Board-Fläche, ca. Oche 2,37 m minus Armreichweite |
 | Bull-Höhe | 1,73 m | Regelmaß |
 | Flight No.2 (Standard) | ca. 44 × 35 mm | Quellen uneinheitlich |
 | Flight No.6 (Slim) | ca. 44 × 24 mm | Quellen uneinheitlich |
@@ -105,4 +137,4 @@ Die Streuung (R90) hängt vor allem an der angenommenen Wurfstreuung, nicht am D
 - Weitere Marken und Soft-Tip-Darts
 - Mehr Flight-Formen (Kite, Pear, Vortex …)
 - Echte Schwerpunkt-Messwerte statt Schätzung aus Balance-Angabe
-- Wurfgeschwindigkeit per Video messen
+- Video-Messung mit echten Zeitlupenvideos erproben, Gieren aus zweiter Kamera

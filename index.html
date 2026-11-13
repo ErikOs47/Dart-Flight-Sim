@@ -7,11 +7,11 @@
 <meta name="description" content="Darts vor dem Kauf per Flugsimulation vergleichen.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600&family=Barlow:wght@400;500&display=swap">
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 <main>
-<header><h1>Dart-Labor</h1><p class="sub">Zwei Darts wählen, Regler schieben, Flugbahn und Trefferbild live vergleichen.</p></header>
+<header><h1>Dart-Labor</h1><p class="sub">Zwei Darts wählen, eigenen Wurf einstellen oder per Video messen, Flugverhalten und Steckwinkel live vergleichen.</p></header>
 
 <!-- 1. Darts wählen -->
 <section aria-labelledby="h-pick">
@@ -28,9 +28,94 @@
 <p class="note hint" id="dbn"></p>
 </section>
 
-<!-- 2. Labor: Grafik + Regler nebeneinander -->
+<!-- 2. Wurf per Video messen -->
+<section aria-labelledby="h-vid">
+<details id="vdet">
+<summary><h2 id="h-vid">2 · Eigenen Wurf per Video messen</h2></summary>
+<p class="note">Wurf von der Seite filmen, den Dart in einigen Bildern nach dem Loslassen markieren. Daraus berechnet die App Geschwindigkeit, Abwurfwinkel, Anstellwinkel, Nickrate und (mit Höhenpunkt) Abwurfhöhe und Abstand zum Board. Das Video bleibt auf deinem Gerät.</p>
+<details class="more"><summary>So filmst du richtig</summary>
+<ul class="tips">
+<li><b>Genau von der Seite</b>, Kamera im rechten Winkel zur Wurflinie, auf Abwurfhöhe, Handy gerade halten (Stativ oder anlehnen). Schräge Sicht verfälscht Winkel und Strecken.</li>
+<li><b>Zeitlupe</b> mit 120 oder 240 Bildern/s. Bei 30 Bildern/s ist der Dart verwischt: Geschwindigkeit geht noch, Nickrate und Anstellwinkel nicht.</li>
+<li><b>Bildausschnitt:</b> Hand beim Loslassen und mindestens der erste halbe Meter Flug. Je größer der Dart im Bild, desto genauer die Winkel (Ziel: über 80 Pixel Dartlänge).</li>
+<li><b>Viel Licht</b> und ruhiger, heller Hintergrund (kurze Belichtung, wenig Wischer).</li>
+<li>Für Abwurfhöhe und Abstand muss zusätzlich der Bull oder der Boden unter der Wurflinie im Bild sein.</li>
+</ul></details>
+<div class="vbtns">
+<label class="btn">Video aufnehmen<input type="file" id="vcam" accept="video/*" capture="environment" hidden></label>
+<label class="btn">Video wählen (z. B. Zeitlupe)<input type="file" id="vfile" accept="video/*" hidden></label>
+</div>
+<p class="note hint" id="vmsg"></p>
+<div id="vwork" hidden>
+<video id="vv" muted playsinline preload="auto" hidden></video>
+<div class="row2"><label for="vff">Bildrate der Datei</label><input type="number" id="vff" min="1" max="1000" step="0.01" inputmode="decimal"><label for="vcf">Echte Aufnahme-Bildrate</label><input type="number" id="vcf" min="1" max="2000" step="1" inputmode="decimal"></div>
+<p class="note" id="vfn">Bei Zeitlupe die Bildrate der Aufnahme eintragen (z. B. 240), auch wenn die Datei mit 30 Bildern/s abgespielt wird.</p>
+<div class="seg3" id="vmode" role="group" aria-label="Was ein Tippen ins Bild setzt">
+<button data-m="mark" aria-pressed="true">Dart markieren</button>
+<button data-m="scale" aria-pressed="false">Maßstab</button>
+<button data-m="ref" aria-pressed="false">Höhe / Board</button>
+</div>
+<p class="vhint" id="vhint"></p>
+<div class="vopts" id="vo-scale" hidden>
+<select id="vsl" aria-label="Referenzstrecke">
+<option value="451">Board-Durchmesser außen (451 mm)</option>
+<option value="340">Double-Ring außen (340 mm)</option>
+<option value="1730">Boden bis Bull (1730 mm)</option>
+<option value="2370">Oche bis Board (2370 mm)</option>
+<option value="0">Eigene Länge</option>
+</select>
+<input type="number" id="vsv" min="1" max="10000" step="1" value="451" aria-label="Länge der Referenzstrecke in mm"><span>mm</span>
+<button id="vsx">Referenz löschen</button>
+</div>
+<div class="vopts" id="vo-ref" hidden>
+<select id="vrl" aria-label="Höhenpunkt">
+<option value="bull">Bull-Mitte (1,73 m, auf dem Board)</option>
+<option value="floor">Boden unter der Wurflinie (0 m)</option>
+<option value="own">Eigene Höhe</option>
+</select>
+<input type="number" id="vrv" min="0" max="3" step="0.01" value="1.73" aria-label="Höhe des Punkts in m"><span>m</span>
+<button id="vrx">Punkt löschen</button>
+</div>
+<div class="stage"><canvas id="vc" tabindex="0" aria-label="Videobild zum Markieren"></canvas></div>
+<div class="vbar">
+<button id="vb10" aria-label="10 Bilder zurück">«</button><button id="vb1" aria-label="1 Bild zurück">‹</button>
+<input type="range" id="vpos" min="0" max="0" step="1" value="0" aria-label="Bild">
+<button id="vf1" aria-label="1 Bild vor">›</button><button id="vf10" aria-label="10 Bilder vor">»</button>
+</div>
+<div class="vbar2">
+<span id="vlab"></span>
+<span class="sp"></span>
+<button id="vzo" aria-label="Verkleinern">−</button><button id="vzr">Ganz</button><button id="vzi" aria-label="Vergrößern">+</button>
+</div>
+<div class="vbar2">
+<button id="vauto">Automatisch weiterverfolgen</button>
+<button id="vdel">Marke in diesem Bild löschen</button>
+<button id="vclr">Alle Marken löschen</button>
+</div>
+<p class="note" id="vstat"></p>
+<div id="vres" hidden>
+<h3>Messergebnis</h3>
+<div class="tbl t2" id="vtbl"></div>
+<div id="vwarn"></div>
+<div class="vbar2">
+<button id="vapply" class="pri">In die Simulation übernehmen</button>
+<button id="vkeep">Wurf merken</button>
+</div>
+<p class="note hint" id="vapp"></p>
+<p class="note" id="vnote"></p>
+</div>
+</div>
+<div id="vlist" hidden>
+<h3>Gemerkte Würfe</h3>
+<div class="tbl t6" id="vthrows"></div>
+<div class="vbar2"><button id="vmean" class="pri">Mittelwert übernehmen</button><button id="vlclr">Liste leeren</button></div>
+</div>
+</details>
+</section>
+
+<!-- 3. Labor: Grafik + Regler nebeneinander -->
 <section aria-labelledby="h-lab" class="lab">
-<h2 id="h-lab">2 · Vergleichen und einstellen</h2>
+<h2 id="h-lab">3 · Vergleichen und einstellen</h2>
 <div class="labgrid">
 <div class="vizcol">
 <div class="viz" id="viz">
@@ -40,6 +125,7 @@
 <canvas id="fl" aria-label="Flugbahn von der Seite"></canvas>
 <canvas id="bd" aria-label="Trefferbild am Board"></canvas>
 </div>
+<canvas id="aa" aria-label="Anstellwinkel über die Flugstrecke"></canvas>
 </div>
 <div class="kpis" id="kpis"></div>
 </div>
@@ -47,11 +133,12 @@
 <div class="ctl">
 <div class="grp">
 <h3>Wurf (beide Darts)</h3>
-<div class="row"><label for="v">Geschwindigkeit</label><input type="range" id="v" min="5" max="12" step="0.1" value="8"><output id="vo"></output></div>
-<div class="row"><label for="h">Abwurfhöhe</label><input type="range" id="h" min="1.4" max="1.9" step="0.01" value="1.65"><output id="ho"></output></div>
-<div class="row"><label for="wp">Nickrate beim Abwurf</label><input type="range" id="wp" min="-900" max="300" step="10" value="0"><output id="wpo"></output></div>
-<div class="row"><label for="dl">Anstellwinkel beim Abwurf</label><input type="range" id="dl" min="-10" max="10" step="0.5" value="0"><output id="dlo"></output></div>
-<p class="note">Nickrate: wie schnell die Spitze beim Loslassen kippt (minus = Spitze nach unten), z. B. aus dem Handgelenk. Anstellwinkel: Spitze zeigt beim Loslassen höher (+) oder tiefer (−) als die Flugrichtung. Messwerte von Amateuren (Median): −412 °/s und +2,9° (James &amp; Potts 2018).</p>
+<div class="row"><label for="v">Geschwindigkeit</label><input type="range" id="v" min="4.5" max="12" step="0.1" value="8"><output id="vo"></output></div>
+<div class="row"><label for="h">Abwurfhöhe</label><input type="range" id="h" min="1.2" max="2" step="0.01" value="1.65"><output id="ho"></output></div>
+<div class="row"><label for="xb">Abstand Abwurf–Board</label><input type="range" id="xb" min="1.6" max="2.6" step="0.01" value="2.2"><output id="xbo"></output></div>
+<div class="row"><label for="wp">Nickrate beim Abwurf</label><input type="range" id="wp" min="-1500" max="1500" step="10" value="0"><output id="wpo"></output></div>
+<div class="row"><label for="dl">Anstellwinkel beim Abwurf</label><input type="range" id="dl" min="-20" max="20" step="0.5" value="0"><output id="dlo"></output></div>
+<p class="note">Nickrate: wie schnell die Spitze beim Loslassen kippt (minus = Spitze nach unten), z. B. aus dem Handgelenk. Anstellwinkel: Spitze zeigt beim Loslassen höher (+) oder tiefer (−) als die Flugrichtung. Messwerte von Amateuren (Median): −412 °/s und +2,9° (James &amp; Potts 2018). Eigene Werte: Abschnitt 2 „Wurf per Video messen“.</p>
 </div>
 
 <div class="grp">
@@ -79,7 +166,7 @@
 <!-- 3. Details -->
 <section aria-labelledby="h-det">
 <details>
-<summary><h2 id="h-det">3 · Alle Kennwerte und Bewertung</h2></summary>
+<summary><h2 id="h-det">4 · Alle Kennwerte und Bewertung</h2></summary>
 <div class="tbl">
 <div class="h">Kennwert</div><div class="h ca" id="tA">A</div><div class="h cb" id="tB">B</div>
 <div class="k">Gesamtlänge</div><div id="rLA"></div><div id="rLB"></div>
@@ -97,10 +184,13 @@
 </div>
 <p class="vd"><b class="ca" id="vtA">A:</b> <span id="vA"></span></p>
 <p class="vd"><b class="cb" id="vtB">B:</b> <span id="vB"></span></p>
-<p class="note">Der Abwurfwinkel wird für jeden Dart so berechnet, dass der Bull getroffen wird. Die Wurfstreuung ist für beide Darts gleich (24 Würfe, feste Zufallsfolge). Schwerpunkt aus der Händlerangabe (vorn, mittig, hinten) geschätzt. Flight-Maße No.2 etwa 44 × 35 mm, No.6 etwa 44 × 24 mm, Eindringwiderstand 50 N, Griffwirkung nur grob. Gedacht zum Vergleichen, nicht als genaue Vorhersage. Dart-Daten: a-zdarts.com, dartshopper.com.</p>
+<p class="note">Der Abwurfwinkel wird für jeden Dart so berechnet, dass die Spitze den Bull trifft. Die Wurfstreuung ist für beide Darts gleich (24 Würfe, feste Zufallsfolge). Schwerpunkt aus der Händlerangabe (vorn, mittig, hinten) geschätzt. Flight-Maße No.2 etwa 44 × 35 mm, No.6 etwa 44 × 24 mm, Eindringwiderstand 50 N, Griffwirkung nur grob. Gedacht zum Vergleichen, nicht als genaue Vorhersage. Dart-Daten: a-zdarts.com, dartshopper.com.</p>
 </details>
 </section>
 </main>
-<script src="app.js?v=5"></script>
+<script src="physics.js?v=6"></script>
+<script src="measure.js?v=6"></script>
+<script src="app.js?v=6"></script>
+<script src="video.js?v=6"></script>
 </body>
 </html>
