@@ -139,17 +139,30 @@ a0=a1;f0=f1;a1=Math.max(0,Math.min(0.75,a2));p.ang=a1;f1=sim3(p,false,dt).y-YB;
 }
 return a1;
 }
-function scatter(p,k){
-const out=[];
+// sig: optionale eigene Streuung (1 σ, SI-Einheiten, Schlüssel wie SIG); fehlende Werte = Standardannahme × k
+function scatter(p,k,sig){
+const out=[],S={};Object.keys(SIG).forEach(key=>{S[key]=sig&&sig[key]!=null?sig[key]:SIG[key]*k});
 for(let i=0;i<NOISE.length;i++){
 const n=NOISE[i],q=Object.assign({},p);
-q.ang+=n[0]*SIG.ang*k;q.psi+=n[1]*SIG.psi*k;q.v+=n[2]*SIG.v*k;q.delta+=n[3]*SIG.delta*k;q.eps+=n[4]*SIG.eps*k;q.wp+=n[5]*SIG.wp*k;q.wy+=n[6]*SIG.wy*k;q.h+=n[7]*SIG.h*k;
+q.ang+=n[0]*S.ang;q.psi+=n[1]*S.psi;q.v+=n[2]*S.v;q.delta+=n[3]*S.delta;q.eps+=n[4]*S.eps;q.wp+=n[5]*S.wp;q.wy+=n[6]*S.wy;q.h+=n[7]*S.h;
 const r=sim3(q,false,0.001);out.push([r.z*1000,(r.y-YB)*1000]);
 }
 return out;
 }
+// Gemessener kompletter Dart -> Setup: Barrel-Gewicht und Barrel-Schwerpunkt so, dass Gesamtmasse und Gesamtschwerpunkt
+// im Modell exakt den Messwerten entsprechen (Spitze, Schaft, Flight mit den Modellmassen aus geom).
+// m: {mass g, cgTip mm ab Spitze, tip, bar, shaft mm, shape}. Rückgabe {wt, cg (% Barrel ab Spitze), ok, err}
+function fromMeasured(m){
+const sh=shapeFor(m.shape,1),mt=1.5*m.tip/25,ms=0.02*m.shaft,mf=sh.m,sff=m.tip+m.bar+m.shaft;
+const wt=m.mass-mt-ms-mf;
+if(!(wt>=8))return{ok:false,err:'Das Gesamtgewicht ist zu klein für Spitze, Schaft und Flight (Barrel unter 8 g).'};
+const sBar=(m.mass*m.cgTip-mt*m.tip/2-ms*(m.tip+m.bar+m.shaft/2)-mf*(sff+sh.L*0.45))/wt;
+const cg=(sBar-m.tip)/m.bar*100;
+if(!(cg>=15&&cg<=85))return{ok:false,wt:wt,cg:cg,err:'Der Schwerpunkt passt nicht zu den Längen: Das Barrel müsste seinen Schwerpunkt bei '+Math.round(cg)+' % seiner Länge haben. Schwerpunkt ab Spitze und Längen prüfen.'};
+return{ok:true,wt:wt,cg:cg};
+}
 // Gesamte Nickrate beim Abwurf (rad/s): Regler-Anteil + Griff-Anteil
 function gripRate(g,p){return GK*(g.sCG-p.grip)*(p.v/7)}
-const api={D:D,G:G,RHO:RHO,YB:YB,GK:GK,F_RES:F_RES,K_SCATTER:K_SCATTER,shapeFor:shapeFor,geom:geom,sim3:sim3,solveAng:solveAng,scatter:scatter,gripRate:gripRate};
+const api={SIG:SIG,fromMeasured:fromMeasured,D:D,G:G,RHO:RHO,YB:YB,GK:GK,F_RES:F_RES,K_SCATTER:K_SCATTER,shapeFor:shapeFor,geom:geom,sim3:sim3,solveAng:solveAng,scatter:scatter,gripRate:gripRate};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.DartPhys=api;
 })(typeof window!=='undefined'?window:globalThis);
