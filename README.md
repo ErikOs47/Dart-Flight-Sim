@@ -2,6 +2,10 @@
 
 Web-App, um Steel-Tip-Darts **vor dem Kauf** per Flugsimulation zu vergleichen. Zwei Darts (A/B) nach Marke und Modell wählen (die Dart-Suche öffnet sich erst beim Antippen von Dart A oder B und schließt sich nach der Auswahl), dann Regler schieben: Flugbahn, Trefferbild und Kennwerte (Streuung, Flugruhe, Steckwinkel, Eindringtiefe) aktualisieren sich live direkt daneben. Die App wirft beide Darts mit **demselben Wurf**: Der Abwurfwinkel wird so eingestellt, dass der Ziel-Dart (wählbar A oder B) den Bull trifft; der andere Dart trifft entsprechend höher oder tiefer (Anzeige „Treffhöhe“ in der Endlage, vergrößert in mm). Die Endlage zeigt beide Darts maßstabsgetreu von der Seite im Board, mit Spitzenbahn, Steckwinkel und Eindringtiefe; der gerade eingestellte Dart ist hervorgehoben, der andere als Ghost.
 
+**Mein Dart:** Die eigenen Pfeile mit gemessenem Gesamtgewicht und Schwerpunkt eintragen (Abschnitt 1). Die App rechnet daraus Barrel-Gewicht und Gewichtsverteilung so zurück, dass das Modell genau diese Werte trifft (Spitze 1,5 g je 25 mm, Schaft 0,02 g/mm und Flight mit den Modellmassen). Der Dart lässt sich in A oder B laden; Änderungen an Spitze, Schaft oder Flight markieren ihn als „angepasst“. So vergleicht man den eigenen Dart mit anderen Darts oder mit einem geänderten Setup.
+
+**Mein Wurf:** Die Wurfstreuung (1 σ von Geschwindigkeit, Abwurfwinkel, Anstellwinkel, Nickrate, Abwurfhöhe) kommt entweder aus der Standardannahme, aus mindestens 3 gemerkten Video-Würfen („Als „Mein Wurf“ übernehmen“, Stichproben-Standardabweichung) oder wird von Hand eingetragen. Die seitliche Streuung sieht die Seitenkamera nicht, sie bleibt bei der Annahme. Die Werte werden als unabhängig behandelt; echte Korrelationen (z. B. langsamer und dafür höher geworfen) fehlen, das Trefferbild ist dadurch eher zu breit. Bei wenigen Würfen ist die gemessene Streuung selbst unsicher, und Messfehler der Video-Auswertung stecken mit drin.
+
 Den eigenen Wurf kann man per Video messen (Abschnitt 2 der App): Wurf von der Seite filmen, Dart in einigen Bildern markieren, die App berechnet Geschwindigkeit, Abwurfwinkel, Anstellwinkel, Nickrate, Abwurfhöhe und Abstand und übernimmt sie in die Simulation.
 
 Reines HTML/CSS/JavaScript, keine Abhängigkeiten, kein Build.
@@ -126,6 +130,8 @@ James & Potts (2018) haben 225 Würfe von 19 Amateuren gefilmt: Median 6,0 m/s, 
 | Griff-Nickimpuls | 0,25 rad/s (≈ 14 °/s) pro mm Abstand Griff–Schwerpunkt, Griff hinter Schwerpunkt → Spitze kippt nach unten | grob geschätzt; Griff 25 mm hinter dem Schwerpunkt ergibt ≈ −400 °/s, passt zur Größenordnung bei James & Potts |
 | Nickrate / Anstellwinkel beim Abwurf | Regler, Standard 0 | Amateur-Median: −412 °/s, +2,9° (James & Potts 2018) |
 | Eindringwiderstand | 50 N | geschätzt |
+| Massen Spitze/Schaft/Flight | 1,5 g je 25 mm / 0,02 g je mm / 0,75 g (No.2), 0,55 g (No.6) | geschätzt; bei „Mein Dart“ steckt der Fehler im zurückgerechneten Barrel, Gesamtmasse und Schwerpunkt stimmen trotzdem |
+| Wurfstreuung „Standard“ | 1 σ: 0,12 m/s, 0,36°, 1,2°, 52 °/s, 3 mm | grobe Annahme, nicht gemessen |
 | Schwerpunkt aus Balance | vorn 40 %, Mitte 50 %, hinten 58 % | Hersteller veröffentlichen keine Messwerte |
 | Referenz-Steckwinkel | ca. 8° | nicht gesichert |
 

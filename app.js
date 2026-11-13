@@ -27,7 +27,7 @@ const SEED=[
 {id:'target-littler-g1-23',brand:'Target',model:'Target Luke Littler G1 Prodigy',name:'Target Luke Littler G1 Prodigy (23 g)',short:'Littler G1',bw:23,len:52,dia:6.5,shape:'Gerade',bal:'Mitte',cg:50,url:SRC+'target-luke-littler-g1-prodigy-swiss-point-steel-tip-darts-23gm'}
 ];
 // Bei jeder Änderung an App oder Daten erhöhen (auch ?v= in index.html), damit Browser keine alte Version aus dem Cache nehmen
-const DATA_V='8';
+const DATA_V='9';
 const LS_KEY='dartlabor.custom.v1',OWN='Eigene';
 let brands=[],darts=SEED.slice(),custom=loadCustom(),brandSel='';
 function loadCustom(){try{const r=JSON.parse(localStorage.getItem(LS_KEY)||'[]');return Array.isArray(r)?r:[]}catch(e){return[]}}
@@ -54,7 +54,7 @@ function calc(i,ang){
 const p=build(setups[i]);p.ang=ang;
 const res=sim3(p,true),g=geom(p),miss=refMiss;
 let amax=0;res.frames.forEach(f=>{if(f.at>amax)amax=f.at});
-const sc=scatter(p,K_SCATTER);let mx=0,my=0;sc.forEach(q=>{mx+=q[0];my+=q[1]});mx/=sc.length;my/=sc.length;
+const sc=scatter(p,K_SCATTER,sigSI());let mx=0,my=0;sc.forEach(q=>{mx+=q[0];my+=q[1]});mx/=sc.length;my/=sc.length;
 const d=sc.map(q=>Math.hypot(q[0]-mx,q[1]-my)).sort((a,b)=>a-b),r90=d[Math.floor(0.9*(d.length-1))];
 const Eax=0.5*g.M*res.vax*res.vax,depth=Math.min(p.tip,Eax/F_RES*1000);
 const l=(g.sCP-g.sCG)*1e-3,kw=0.5*RHO*p.v*p.v*g.eta*g.ae.S*g.ae.K1*l/g.I;
@@ -72,7 +72,7 @@ t.push(o.amax<5?'Flug ruhig (Anstellwinkel unter 5°).':o.amax<10?'Flug mäßig 
 if(o.depth<8)t.push('Eindringtiefe unter 8 mm: Flight kippt eher nach unten.');
 return t.join(' ');
 }
-function lbl(i){const s=setups[i];return s.name+(s.mod?' (angepasst)':'')}
+function lbl(i){const s=setups[i];return(s.mine?'★ ':'')+s.name+(s.mod?' (angepasst)':'')}
 function cell(id,a,b){$(id+'A').textContent=a;$(id+'B').textContent=b}
 // Kompakte Kennwerte direkt unter der Grafik; 'lo' = kleiner ist besser
 const KPI=[
@@ -87,8 +87,8 @@ const KPI=[
 function labels(){
 const s=setups[act];
 $('wto').textContent=fmt(s.wt,1)+' g';$('baro').textContent=fmt(s.bar,2)+' mm';$('diao').textContent=fmt(s.dia,2)+' mm';
-$('cgo').textContent=s.cg+' %';
-$('gro').textContent=s.grip+' mm';$('tipo').textContent=s.tip+' mm';$('sho').textContent=s.shaft+' mm';
+$('cgo').textContent=fmt(s.cg)+' %';
+$('gro').textContent=s.grip+' mm';$('tipo').textContent=fmt(s.tip,1)+' mm';$('sho').textContent=fmt(s.shaft,1)+' mm';
 $('vo').textContent=fmt(+$('v').value,1)+' m/s';$('ho').textContent=fmt(+$('h').value,2)+' m';$('xbo').textContent=fmt(+$('xb').value,2)+' m';
 $('wpo').textContent=fmt(+$('wp').value)+' °/s';$('dlo').textContent=fmt(+$('dl').value,1)+'°';
 {const o=out[act],d=o.g.sCG-o.p.grip;$('grn').textContent='Griff '+fmt(Math.abs(d))+' mm '+(Math.abs(d)<3?'am':d>0?'vor dem':'hinter dem')+' Schwerpunkt → Griff-Anteil der Nickrate '+fmt(GK*d*(o.p.v/7)/D)+' °/s (grobe Annahme, siehe README).'}
@@ -293,7 +293,7 @@ c.globalAlpha=0.8;c.fillStyle=COL[i];c.strokeStyle=COL[i];c.lineWidth=1.3;o.sc.f
 c.strokeStyle=COL[i];c.lineWidth=1.4;c.setLineDash(i?[4,3]:[]);c.beginPath();c.arc(X(o.cx),Y(o.cy),o.r90*s,0,7);c.stroke();c.setLineDash([]);
 });
 c.restore();
-c.fillStyle=P.mid;c.font='11px '+FF;c.textAlign='left';c.fillText(W>200?'Trefferbild (±'+R+' mm): 24 Würfe je Dart, gleicher Wurf, A ● B ○, Kreis = 90 %':'Trefferbild',6,13);
+c.fillStyle=P.mid;c.font='11px '+FF;c.textAlign='left';c.fillText(W>200?'Trefferbild (±'+R+' mm): 24 Würfe je Dart, gleicher Wurf, Streuung '+(sigMode==='mine'?'„Mein Wurf“':'Standard')+', A ● B ○, Kreis = 90 %':'Trefferbild',6,13);
 }
 function redraw(){pal();drawEnd();drawFlight();drawAlpha();drawDarts();drawBoard()}
 // Neuberechnung höchstens einmal pro Frame, damit die Regler flüssig bleiben
@@ -358,12 +358,12 @@ const d=byId(b.dataset.id);if(d){loadDart(d);showPicker(false)}
 });
 $('brands').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;brandSel=b.dataset.b;renderBrands();renderList();$('list').scrollTop=0});
 const map={wt:'wt',bar:'bar',dia:'dia',cg:'cg',tip:'tip',sh:'shaft',gr:'grip'};
-Object.keys(map).forEach(id=>$(id).addEventListener('input',()=>{const s=setups[act];s.mod=s.mod||['wt','bar','dia','cg'].includes(id);s[map[id]]=+$(id).value;recompute()}));
+Object.keys(map).forEach(id=>$(id).addEventListener('input',()=>{const s=setups[act];s.mod=s.mod||['wt','bar','dia','cg'].includes(id)||(s.mine&&['tip','sh'].includes(id));s[map[id]]=+$(id).value;recompute()}));
 const THROW=['v','h','xb','wp','dl'];
 THROW.forEach(id=>$(id).addEventListener('input',recompute));
 function setRef(i){ref=i;$('rf').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.r===i?'true':'false'))}
 $('rf').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setRef(+b.dataset.r);recompute()});
-$('seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setups[act].shape=b.dataset.s;syncUI();recompute()});
+$('seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const s=setups[act];if(s.mine&&s.shape!==b.dataset.s)s.mod=true;s.shape=b.dataset.s;syncUI();recompute()});
 // Dart-Suche nur zeigen, wenn Platz A oder B angetippt wird; erneutes Tippen auf denselben Platz schließt sie
 let pickOpen=false;
 function showPicker(on){
@@ -399,7 +399,7 @@ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',redraw)
 /* ---------- Zustand merken (localStorage) ---------- */
 const ST_KEY='dartlabor.state.v1';
 function saveState(){
-try{const th={};THROW.forEach(id=>th[id]=+$(id).value);localStorage.setItem(ST_KEY,JSON.stringify({setups:setups,act:act,ref:ref,th:th,meas:meas}))}catch(e){}
+try{const th={};THROW.forEach(id=>th[id]=+$(id).value);localStorage.setItem(ST_KEY,JSON.stringify({setups:setups,act:act,ref:ref,th:th,meas:meas,sigMode:sigMode,sigMine:sigMine,sigSrc:sigSrc}))}catch(e){}
 }
 function loadState(){
 try{
@@ -408,6 +408,8 @@ const num=['wt','bar','dia','cg','tip','shaft','size','grip'];
 if(Array.isArray(st.setups)&&st.setups.length===2&&st.setups.every(q=>q&&num.every(k=>isFinite(q[k]))&&BASES_OK(q.shape)))setups=st.setups;
 if(st.act===1)act=1;
 if(st.ref===1)setRef(1);
+if(st.sigMine&&SIGK.every(k=>isFinite(st.sigMine[k]))){sigMine=st.sigMine;sigSrc=String(st.sigSrc||'')}
+if(st.sigMode==='mine'&&sigMine)sigMode='mine';
 if(st.th)THROW.forEach(id=>{if(isFinite(st.th[id]))$(id).value=st.th[id]});
 if(st.meas&&Array.isArray(st.meas.pts))meas=st.meas;
 }catch(e){}
@@ -433,11 +435,79 @@ const o=out[act],grip=PH.gripRate(o.g,{grip:o.p.grip,v:+$('v').value})/D;
 set('wp',t.wp-grip,'Nickrate');set('dl',t.dl,'Anstellwinkel');
 meas=m||null;recompute();return lim;
 },
-clearMeas:function(){meas=null;redraw();saveState()}
+clearMeas:function(){meas=null;redraw();saveState()},
+// Mittelwerte wie applyThrow, dazu Streuung (1 σ: v m/s, ang °, dl °, wp °/s, h mm) aus n gemessenen Würfen
+setThrowProfile:function(t,sd,n){
+const lim=this.applyThrow(t,null);
+if(sd&&n>=3){sigMine=Object.assign({},sigStd(),sd);sigSrc='aus '+n+' gemessenen Würfen';sigMode='mine';renderSig();recompute()}
+return lim;
+}
 };
 
+/* ---------- Mein Wurf: eigene Wurfstreuung ---------- */
+const SIGK=['v','ang','dl','wp','h'];
+let sigMode='std',sigMine=null,sigSrc='';
+// Standardannahme in Anzeige-Einheiten (1 σ)
+function sigStd(){const S=PH.SIG,k=K_SCATTER;return{v:S.v*k,ang:S.ang*k/D,dl:S.delta*k/D,wp:S.wp*k/D,h:S.h*k*1000}}
+// Für die Physik: null = Standardannahme; sonst SI-Werte, seitliche Streuung bleibt Standard
+function sigSI(){if(sigMode!=='mine'||!sigMine)return null;const s=sigMine;return{v:s.v,ang:s.ang*D,delta:s.dl*D,wp:s.wp*D,h:s.h/1000}}
+function renderSig(){
+const cur=sigMode==='mine'&&sigMine?sigMine:sigStd();
+$('sgm').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===sigMode?'true':'false'));
+const dg={v:2,ang:2,dl:1,wp:0,h:1};
+SIGK.forEach(k=>{const el=$('sg_'+k);if(document.activeElement!==el)el.value=+cur[k].toFixed(dg[k])});
+$('sgn').textContent=sigMode==='mine'?'Mein Wurf: Streuung '+(sigSrc||'eigene Werte')+'. Trefferbild und R90 zeigen damit deine Streuung.'
+:'Standard: grobe Annahme, nicht gemessen. Für deine echte Streuung mehrere Würfe per Video messen (Abschnitt 2) oder die Werte unten anpassen.';
+}
+$('sgm').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+sigMode=b.dataset.m;if(sigMode==='mine'&&!sigMine){sigMine=sigStd();sigSrc='noch gleich der Standardannahme, bitte anpassen oder messen'}
+renderSig();recompute()});
+SIGK.forEach(k=>$('sg_'+k).addEventListener('input',()=>{
+const v=+$('sg_'+k).value;if(!(v>=0))return;
+if(!sigMine)sigMine=sigStd();sigMine[k]=v;
+if(!/von Hand/.test(sigSrc))sigSrc=(sigSrc&&!/^noch/.test(sigSrc)?sigSrc+', ':'')+'von Hand angepasst';
+sigMode='mine';renderSig();recompute()}));
+
+/* ---------- Mein Dart: gemessene Werte ---------- */
+const MINE_KEY='dartlabor.mine.v1',MF=['mass','cgTip','tip','bar','dia','shaft'];
+let mine=null;
+try{const m=JSON.parse(localStorage.getItem(MINE_KEY)||'null');if(m&&MF.every(k=>isFinite(m[k]))&&BASES_OK(m.shape)&&PH.fromMeasured(m).ok)mine=m}catch(e){}
+function mineSetup(grip){
+const r=PH.fromMeasured(mine);
+return Object.assign({},BASE,{dartId:'mine',mine:true,name:mine.name,mod:false,wt:r.wt,bar:mine.bar,dia:mine.dia,cg:r.cg,tip:mine.tip,shaft:mine.shaft,shape:mine.shape,grip:grip==null?BASE.grip:grip});
+}
+function loadMine(i){if(!mine)return;setups[i]=mineSetup(setups[i].grip);if(act!==i)setAct(i);else syncUI();recompute()}
+const MI={mN:'name',mM:'mass',mC:'cgTip',mT:'tip',mB:'bar',mD:'dia',mS:'shaft',mF:'shape'};
+function fillForm(m){Object.keys(MI).forEach(id=>{const v=m[MI[id]];$(id).value=v==null?'':(typeof v==='number'?+v.toFixed(2):v)})}
+function renderMine(){
+$('mnn').textContent=mine?mine.name+' · '+fmt(mine.mass,2)+' g · Schwerpunkt '+fmt(mine.cgTip,1)+' mm ab Spitze':'noch nicht eingetragen';
+$('mlA').disabled=$('mlB').disabled=!mine;$('mdel').disabled=!mine;
+$('med').textContent=$('mform').hidden?(mine?'Bearbeiten':'Eintragen'):'Schließen';
+}
+$('med').addEventListener('click',()=>{const on=$('mform').hidden;$('mform').hidden=!on;$('med').setAttribute('aria-expanded',on?'true':'false');
+if(on){if(mine)fillForm(mine);else if(!$('mM').value)fillFromActive()}renderMine()});
+function fillFromActive(){const o=out[act],s=setups[act];fillForm({name:mine?mine.name:'',mass:o.g.Mg,cgTip:o.g.sCG,tip:s.tip,bar:s.bar,dia:s.dia,shaft:s.shaft,shape:s.shape});$('mres').textContent='Vorbefüllt mit den Modellwerten von Dart '+(act?'B':'A')+'. Jetzt Gewicht und Schwerpunkt deines Darts eintragen.';$('mres').className='note'}
+$('mfill').addEventListener('click',fillFromActive);
+$('msv').addEventListener('click',()=>{
+const m={};Object.keys(MI).forEach(id=>{m[MI[id]]=id==='mN'||id==='mF'?$(id).value.trim():+$(id).value});
+if(!m.name)m.name='Mein Dart';
+const bad=MF.filter(k=>!($('m'+{mass:'M',cgTip:'C',tip:'T',bar:'B',dia:'D',shaft:'S'}[k]).value!==''&&m[k]>0));
+const res=$('mres');
+if(bad.length){res.textContent='Bitte alle Maße eintragen.';res.className='note err';return}
+const r=PH.fromMeasured(m);
+if(!r.ok){res.textContent=r.err;res.className='note err';return}
+mine=m;try{localStorage.setItem(MINE_KEY,JSON.stringify(mine))}catch(e){res.textContent='Speichern nicht möglich (Browser-Speicher gesperrt).';res.className='note err';return}
+loadMine(0);
+const g=geom(build(setups[0]));
+res.className='note';
+res.textContent='Gespeichert und in A geladen. Daraus berechnet: Barrel '+fmt(r.wt,1)+' g, Schwerpunkt des Barrels bei '+fmt(r.cg)+' % seiner Länge. Kontrolle im Modell: '+fmt(g.Mg,2)+' g, Schwerpunkt '+fmt(g.sCG,1)+' mm ab Spitze, Gesamtlänge '+fmt(g.len)+' mm.';
+renderMine();
+});
+$('mdel').addEventListener('click',()=>{mine=null;try{localStorage.removeItem(MINE_KEY)}catch(e){}setups.forEach(s=>{s.mine=false});$('mres').textContent='Gelöscht.';$('mres').className='note';renderMine();labels()});
+$('mlA').addEventListener('click',()=>loadMine(0));$('mlB').addEventListener('click',()=>loadMine(1));
+
 /* ---------- Start ---------- */
-loadState();setAct0();setup();syncUI();renderBrands();renderList();recompute();
+loadState();setAct0();setup();syncUI();renderBrands();renderList();renderSig();renderMine();recompute();
 fetch('data/brands.json?v='+DATA_V).then(r=>{if(!r.ok)throw 0;return r.json()})
 .then(ix=>Promise.all(ix.brands.map(b=>fetch('data/'+b.file+'?v='+DATA_V).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{j.darts.forEach(d=>d.brand=j.brand);return{info:b,darts:j.darts}}))))
 .then(res=>{

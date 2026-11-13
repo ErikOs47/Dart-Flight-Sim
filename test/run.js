@@ -40,4 +40,23 @@ function dart(over) {
   assert(Math.abs(m.wp - wtot) < 120 * D, 'Nickrate');
   assert(Math.abs(m.h - p.h) < 0.01 && Math.abs(m.xb - p.xb) < 0.03, 'Höhe/Abstand');
 }
+// 3. Gemessener Dart: Rückrechnung trifft Gesamtmasse und Schwerpunkt exakt
+{
+  const m = { mass: 23.8, cgTip: 52, tip: 26, bar: 48, dia: 7.1, shaft: 34, shape: 'n2' };
+  const r = PH.fromMeasured(m); assert(r.ok, r.err);
+  const g = PH.geom(dart({ wt: r.wt, cg: r.cg, tip: m.tip, bar: m.bar, dia: m.dia, shaft: m.shaft }));
+  assert(Math.abs(g.Mg - m.mass) < 1e-9 && Math.abs(g.sCG - m.cgTip) < 1e-9, 'Rückrechnung');
+  assert(!PH.fromMeasured(Object.assign({}, m, { cgTip: 140 })).ok, 'unplausibler Schwerpunkt muss abgelehnt werden');
+  console.log('Mein Dart ok: Barrel', r.wt.toFixed(2), 'g, Barrel-Schwerpunkt', r.cg.toFixed(1), '%');
+}
+// 4. Eigene Streuung: doppelte Streuung -> etwa doppelte Trefferstreuung, null = Standard
+{
+  const p = dart(); p.ang = PH.solveAng(p, 0.0005);
+  const sd = sc => { const m = sc.reduce((a, q) => a + q[1], 0) / sc.length; return Math.sqrt(sc.reduce((a, q) => a + (q[1] - m) ** 2, 0) / sc.length); };
+  const S = PH.SIG, k = PH.K_SCATTER, base = { v: S.v * k, ang: S.ang * k, delta: S.delta * k, wp: S.wp * k, h: S.h * k };
+  const s0 = sd(PH.scatter(p, k)), s1 = sd(PH.scatter(p, k, base)), s2 = sd(PH.scatter(p, k, { v: 2 * base.v, ang: 2 * base.ang, delta: 2 * base.delta, wp: 2 * base.wp, h: 2 * base.h }));
+  assert(Math.abs(s0 - s1) < 1e-9, 'Standard');
+  assert(s2 / s1 > 1.8 && s2 / s1 < 2.2, 'Skalierung ' + s2 / s1);
+  console.log('Streuung ok: vertikal', s1.toFixed(1), 'mm ->', s2.toFixed(1), 'mm');
+}
 console.log('alle Tests ok');

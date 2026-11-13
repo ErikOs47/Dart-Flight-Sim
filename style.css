@@ -91,6 +91,20 @@ canvas{display:block;width:100%;border:1px solid var(--line);border-radius:8px;b
 .row label{color:var(--muted);font-size:13px}.row output{text-align:right;font-variant-numeric:tabular-nums}
 input[type=range]{width:100%;accent-color:var(--act,var(--ca))}
 .ctl.edB{--act:var(--cb)}
+.mine{margin-top:10px;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.minehead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px}
+.minehead b{font-family:var(--f-head);font-size:15px}
+#mnn{color:var(--muted);font-size:13px}
+.minebtns{display:flex;gap:6px;flex-wrap:wrap}
+.minebtns button{padding:4px 10px;font-size:13px}
+.minebtns .a{color:var(--ca)}.minebtns .b{color:var(--cb)}
+.mgrid{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center;margin:8px 0;font-size:13px;max-width:420px}
+.mgrid label{color:var(--muted)}
+.mgrid input,.mgrid select{border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--bg);min-width:0;width:100%}
+.mgrid .u{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.mgrid .u input{width:96px;flex:none}
+#mres.err{color:var(--warn)}
+#sgm button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
 .refrow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:2px 0 4px;font-size:13px;color:var(--muted)}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
 .seg button{font-size:13px;padding:6px}

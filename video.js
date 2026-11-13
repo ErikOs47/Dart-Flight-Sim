@@ -306,13 +306,16 @@ $('vapply').addEventListener('click', () => {
 /* ---------- Gemerkte Würfe ---------- */
 function saveThrows() { try { localStorage.setItem(TH_KEY, JSON.stringify(throws)); } catch (e) {} }
 function mean(k) { const a = throws.map(t => t[k]).filter(x => x != null && isFinite(x)); return a.length ? a.reduce((p, q) => p + q, 0) / a.length : null; }
+// Standardabweichung (Stichprobe, n − 1), null bei weniger als 3 Werten
+function sdev(k) { const a = throws.map(t => t[k]).filter(x => x != null && isFinite(x)); if (a.length < 3) return null; const m = a.reduce((p, q) => p + q, 0) / a.length; return Math.sqrt(a.reduce((p, q) => p + (q - m) * (q - m), 0) / (a.length - 1)); }
 function renderThrows() {
   $('vlist').hidden = !throws.length;
   if (!throws.length) return;
-  const row = (n, t, del) => '<div class="k">' + n + '</div><div>' + fmt(t.v, 2) + '</div><div>' + fmt(t.gam, 1) + '°</div><div>' + fmt(t.alpha, 1) + '°</div><div>' + fmt(t.wp) + '</div><div>' + (t.h == null ? '–' : fmt(t.h, 2)) + '</div><div>' + del + '</div>';
+  const row = (n, t, del) => '<div class="k">' + n + '</div><div>' + fmt(t.v, 2) + '</div><div>' + fmt(t.gam, 1) + '°</div><div>' + fmt(t.alpha, 1) + '°</div><div>' + fmt(t.wp) + '</div><div>' + (t.hs || (t.h == null ? '–' : fmt(t.h, 2))) + '</div><div>' + del + '</div>';
   const m = { v: mean('v'), gam: mean('gam'), alpha: mean('alpha'), wp: mean('wp'), h: mean('h') };
   $('vthrows').innerHTML = ['Wurf', 'm/s', 'Abwurf', 'Anstell', '°/s', 'Höhe m', ''].map(h => '<div class="h">' + h + '</div>').join('') +
-    throws.map((t, i) => row(i + 1, t, '<button class="del" data-i="' + i + '" aria-label="Wurf ' + (i + 1) + ' löschen">✕</button>')).join('') + row('<b>Mittel</b>', m, '');
+    throws.map((t, i) => row(i + 1, t, '<button class="del" data-i="' + i + '" aria-label="Wurf ' + (i + 1) + ' löschen">✕</button>')).join('') + row('<b>Mittel</b>', m, '') +
+    (throws.length >= 3 ? row('Streuung ±', { v: sdev('v'), gam: sdev('gam'), alpha: sdev('alpha'), wp: sdev('wp'), hs: sdev('h') == null ? '–' : fmt(sdev('h') * 1000) + ' mm' }, '') : '');
 }
 $('vkeep').addEventListener('click', () => {
   if (!result) return;
@@ -324,9 +327,12 @@ $('vlclr').addEventListener('click', () => { throws = []; saveThrows(); renderTh
 $('vmean').addEventListener('click', () => {
   if (!throws.length) return;
   const t = { v: mean('v'), h: mean('h'), xb: mean('xb'), wp: mean('wp'), dl: mean('alpha') };
-  const lim = LAB.applyThrow(t, null);
+  const n = throws.length, sd = { v: sdev('v'), ang: sdev('gam'), dl: sdev('alpha'), wp: sdev('wp') }, sh = sdev('h');
+  if (sh != null) sd.h = sh * 1000;
+  Object.keys(sd).forEach(k => { if (sd[k] == null) delete sd[k]; });
+  const lim = LAB.setThrowProfile(t, sd, n);
   $('vlist').scrollIntoView({ block: 'nearest' });
-  stat('Mittelwert aus ' + throws.length + ' Würfen übernommen.' + (lim.length ? ' Am Reglerende begrenzt: ' + lim.join(', ') + '.' : ''));
+  stat('Mittelwert aus ' + n + ' Würfen übernommen' + (n >= 3 ? ', Streuung als „Mein Wurf“ gesetzt.' : '. Für die Streuung mindestens 3 Würfe merken.') + (lim.length ? ' Am Reglerende begrenzt: ' + lim.join(', ') + '.' : ''));
   document.getElementById('h-lab').scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
