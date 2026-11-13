@@ -1,6 +1,6 @@
 # Dart-Labor
 
-Web-App, um Steel-Tip-Darts **vor dem Kauf** per Flugsimulation zu vergleichen. Zwei Darts (A/B) nach Marke und Modell wählen, dann Regler schieben: Flugbahn, Trefferbild und Kennwerte (Streuung, Flugruhe, Steckwinkel, Eindringtiefe) aktualisieren sich live direkt daneben. Die App wirft beide Darts automatisch auf den Bull. Die Endlage zeigt beide Darts maßstabsgetreu von der Seite im Board, mit Spitzenbahn, Steckwinkel und Eindringtiefe; der gerade eingestellte Dart ist hervorgehoben, der andere als Ghost.
+Web-App, um Steel-Tip-Darts **vor dem Kauf** per Flugsimulation zu vergleichen. Zwei Darts (A/B) nach Marke und Modell wählen (die Dart-Suche öffnet sich erst beim Antippen von Dart A oder B und schließt sich nach der Auswahl), dann Regler schieben: Flugbahn, Trefferbild und Kennwerte (Streuung, Flugruhe, Steckwinkel, Eindringtiefe) aktualisieren sich live direkt daneben. Die App wirft beide Darts automatisch auf den Bull. Die Endlage zeigt beide Darts maßstabsgetreu von der Seite im Board, mit Spitzenbahn, Steckwinkel und Eindringtiefe; der gerade eingestellte Dart ist hervorgehoben, der andere als Ghost.
 
 Den eigenen Wurf kann man per Video messen (Abschnitt 2 der App): Wurf von der Seite filmen, Dart in einigen Bildern markieren, die App berechnet Geschwindigkeit, Abwurfwinkel, Anstellwinkel, Nickrate, Abwurfhöhe und Abstand und übernimmt sie in die Simulation.
 

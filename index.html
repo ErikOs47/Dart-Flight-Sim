@@ -7,7 +7,7 @@
 <meta name="description" content="Darts vor dem Kauf per Flugsimulation vergleichen.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600&family=Barlow:wght@400;500&display=swap">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 <main>
@@ -17,14 +17,17 @@
 <section aria-labelledby="h-pick">
 <h2 id="h-pick">1 · Darts wählen</h2>
 <div class="slots" role="group" aria-label="Aktiver Platz">
-<button id="sA" class="slot a" aria-pressed="true"><b>Dart A</b><span id="nA"></span></button>
-<button id="sB" class="slot b" aria-pressed="false"><b>Dart B</b><span id="nB"></span></button>
+<button id="sA" class="slot a" aria-pressed="true" aria-expanded="false" aria-controls="picker"><b>Dart A</b><span id="nA"></span></button>
+<button id="sB" class="slot b" aria-pressed="false" aria-expanded="false" aria-controls="picker"><b>Dart B</b><span id="nB"></span></button>
 </div>
-<p class="note">Wähle Platz A oder B, dann unten ein Gewicht antippen.</p>
+<p class="note" id="pkn">Auf Dart A oder B tippen, um einen anderen Dart auszuwählen.</p>
+<div class="picker" id="picker" hidden>
+<div class="pkhead"><span id="pkt"></span><button id="pkx" aria-label="Auswahl schließen">Schließen</button></div>
 <div class="brands" id="brands" role="group" aria-label="Marke"></div>
 <input class="q" id="q" type="search" placeholder="Modell oder Spieler suchen, z. B. Searle" autocomplete="off">
 <div class="list" id="list"></div>
 <p class="note" id="cnt"></p>
+</div>
 <p class="note hint" id="dbn"></p>
 </section>
 
@@ -188,9 +191,9 @@
 </details>
 </section>
 </main>
-<script src="physics.js?v=6"></script>
-<script src="measure.js?v=6"></script>
-<script src="app.js?v=6"></script>
-<script src="video.js?v=6"></script>
+<script src="physics.js?v=7"></script>
+<script src="measure.js?v=7"></script>
+<script src="app.js?v=7"></script>
+<script src="video.js?v=7"></script>
 </body>
 </html>

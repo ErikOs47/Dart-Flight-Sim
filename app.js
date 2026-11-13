@@ -26,7 +26,7 @@ const SEED=[
 {id:'target-littler-g1-23',brand:'Target',model:'Target Luke Littler G1 Prodigy',name:'Target Luke Littler G1 Prodigy (23 g)',short:'Littler G1',bw:23,len:52,dia:6.5,shape:'Gerade',bal:'Mitte',cg:50,url:SRC+'target-luke-littler-g1-prodigy-swiss-point-steel-tip-darts-23gm'}
 ];
 // Bei jeder Änderung an App oder Daten erhöhen (auch ?v= in index.html), damit Browser keine alte Version aus dem Cache nehmen
-const DATA_V='6';
+const DATA_V='7';
 const LS_KEY='dartlabor.custom.v1',OWN='Eigene';
 let brands=[],darts=SEED.slice(),custom=loadCustom(),brandSel='';
 function loadCustom(){try{const r=JSON.parse(localStorage.getItem(LS_KEY)||'[]');return Array.isArray(r)?r:[]}catch(e){return[]}}
@@ -266,7 +266,7 @@ act=i;
 ['sA','eA'].forEach(id=>$(id).setAttribute('aria-pressed',i===0?'true':'false'));
 ['sB','eB'].forEach(id=>$(id).setAttribute('aria-pressed',i===1?'true':'false'));
 document.querySelector('.ctl').classList.toggle('edB',i===1);
-syncUI();labels();redraw();saveState();notify();
+syncUI();labels();redraw();saveState();notify();if(pickOpen)showPicker(true);
 }
 function setAct0(){['sA','eA'].forEach(id=>$(id).setAttribute('aria-pressed',act===0?'true':'false'));['sB','eB'].forEach(id=>$(id).setAttribute('aria-pressed',act===1?'true':'false'));document.querySelector('.ctl').classList.toggle('edB',act===1)}
 function syncUI(){
@@ -314,7 +314,7 @@ syncUI();recompute();
 $('list').addEventListener('click',e=>{
 const b=e.target.closest('button');if(!b)return;
 if(b.dataset.del){custom=custom.filter(c=>c.id!==b.dataset.del);saveCustom();renderBrands();renderList();return}
-const d=byId(b.dataset.id);if(d)loadDart(d);
+const d=byId(b.dataset.id);if(d){loadDart(d);showPicker(false)}
 });
 $('brands').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;brandSel=b.dataset.b;renderBrands();renderList();$('list').scrollTop=0});
 const map={wt:'wt',bar:'bar',dia:'dia',cg:'cg',tip:'tip',sh:'shaft',gr:'grip'};
@@ -322,7 +322,23 @@ Object.keys(map).forEach(id=>$(id).addEventListener('input',()=>{const s=setups[
 const THROW=['v','h','xb','wp','dl'];
 THROW.forEach(id=>$(id).addEventListener('input',recompute));
 $('seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setups[act].shape=b.dataset.s;syncUI();recompute()});
-$('sA').addEventListener('click',()=>setAct(0));$('sB').addEventListener('click',()=>setAct(1));
+// Dart-Suche nur zeigen, wenn Platz A oder B angetippt wird; erneutes Tippen auf denselben Platz schließt sie
+let pickOpen=false;
+function showPicker(on){
+pickOpen=on;$('picker').hidden=!on;$('pkn').hidden=on;
+['sA','sB'].forEach((id,i)=>$(id).setAttribute('aria-expanded',on&&act===i?'true':'false'));
+if(on){$('pkt').textContent='Dart '+(act?'B':'A')+' auswählen';markLoaded()}
+}
+function slotClick(i){
+if(pickOpen&&act===i){showPicker(false);return}
+if(act!==i)setAct(i);
+showPicker(true);
+// Suchfeld nur mit Maus/Trackpad direkt fokussieren; auf dem Handy würde sonst sofort die Tastatur die Liste verdecken
+if(matchMedia('(pointer:fine)').matches)$('q').focus({preventScroll:true});
+}
+$('sA').addEventListener('click',()=>slotClick(0));$('sB').addEventListener('click',()=>slotClick(1));
+$('pkx').addEventListener('click',()=>{showPicker(false);$(act?'sB':'sA').focus()});
+$('picker').addEventListener('keydown',e=>{if(e.key==='Escape'){showPicker(false);$(act?'sB':'sA').focus()}});
 $('eA').addEventListener('click',()=>setAct(0));$('eB').addEventListener('click',()=>setAct(1));
 $('q').addEventListener('input',renderList);
 $('sv').addEventListener('click',()=>{
