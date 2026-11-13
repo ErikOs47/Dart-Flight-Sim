@@ -1,6 +1,6 @@
 # Dart-Labor
 
-Web-App, um Steel-Tip-Darts **vor dem Kauf** per Flugsimulation zu vergleichen. Zwei Darts (A/B) nach Marke und Modell wählen, dann Regler schieben: Flugbahn, Trefferbild und Kennwerte (Streuung, Flugruhe, Steckwinkel, Eindringtiefe) aktualisieren sich live direkt daneben. Die App wirft beide Darts automatisch auf den Bull. Die Endlage zeigt beide Darts maßstabsgetreu von der Seite im Board, mit Spitzenbahn, Steckwinkel und Eindringtiefe; der gerade eingestellte Dart ist hervorgehoben, der andere als Ghost.
+Web-App, um Steel-Tip-Darts **vor dem Kauf** per Flugsimulation zu vergleichen. Zwei Darts (A/B) nach Marke und Modell wählen (die Dart-Suche öffnet sich erst beim Antippen von Dart A oder B und schließt sich nach der Auswahl), dann Regler schieben: Flugbahn, Trefferbild und Kennwerte (Streuung, Flugruhe, Steckwinkel, Eindringtiefe) aktualisieren sich live direkt daneben. Die App wirft beide Darts mit **demselben Wurf**: Der Abwurfwinkel wird so eingestellt, dass der Ziel-Dart (wählbar A oder B) den Bull trifft; der andere Dart trifft entsprechend höher oder tiefer (Anzeige „Treffhöhe“ in der Endlage, vergrößert in mm). Die Endlage zeigt beide Darts maßstabsgetreu von der Seite im Board, mit Spitzenbahn, Steckwinkel und Eindringtiefe; der gerade eingestellte Dart ist hervorgehoben, der andere als Ghost.
 
 Den eigenen Wurf kann man per Video messen (Abschnitt 2 der App): Wurf von der Seite filmen, Dart in einigen Bildern markieren, die App berechnet Geschwindigkeit, Abwurfwinkel, Anstellwinkel, Nickrate, Abwurfhöhe und Abstand und übernimmt sie in die Simulation.
 
@@ -95,9 +95,15 @@ Quellen der Maße: Händlerangaben von [a-zdarts.com](https://a-zdarts.com) (138
 - **Flight-Aerodynamik:** Umriss als Polygon; Auftriebsanstieg nach Streckung (Helmbold-Näherung) mit Rumpf-Interferenzfaktor; Druckpunkt per Streifentheorie (c/4 je Streifen); zusätzlich Querwiderstand der Platte (C_D 1,17).
 - **Rumpf:** Querkraft der Zylinder (C_D 1,1), Stirnwiderstand der Barrel-Stufe (C_D 0,9), Hautreibung laminar (Blasius 1,328/√Re) für alle Teile.
 - **Momente:** Rückstellmoment Flight und Rumpf, Nickdämpfung über Anströmung am Druckpunkt (ω × Hebelarm), Rolldämpfung des Drall, Nachlauf-Abschwächung des Flights durch das Barrel.
-- **Wurf:** Abwurfwinkel wird je Dart per Sekantenverfahren so gesucht, dass die Spitze den Bull trifft. Drall 5 U/s.
+- **Wurf:** Abwurfwinkel wird per Sekantenverfahren so gesucht, dass die Spitze des Ziel-Darts den Bull trifft; der andere Dart fliegt mit identischem Wurf (Geschwindigkeit, Winkel, Höhe, Nickrate, Anstellwinkel). Treffhöhe = Höhe der Spitze an der Board-Fläche relativ zum Bull. Drall 5 U/s.
 - **Streuung:** 24 Würfe mit fester Zufallsfolge (gleich für jeden Dart), gestört werden Abwurfwinkel, Seitenwinkel, Geschwindigkeit, Anstell-/Schiebewinkel, Nick-/Gierrate und Höhe. R90 = Radius um den Mittelpunkt, in dem 90 % liegen.
 - **Kennwerte:** Steckwinkel (Neigung beim Auftreffen), max. Anstellwinkel, Nickperiode (lineare Näherung), Eindringtiefe = axiale Energie / Eindringwiderstand.
+
+## Warum treffen Darts bei gleichem Wurf unterschiedlich hoch?
+
+Die Schwerkraft beschleunigt jede Masse gleich, deshalb macht das Gewicht allein bei identischem Abwurf fast keinen Unterschied (Modell, 8 m/s, ohne Nickrate: 18 g vs. 28 g ca. ±0,1 mm; Slim-Flight +0,7 mm; Schwerpunkt hinten +2,3 mm; Barrel 40 statt 50 mm −1,9 mm). Größer wird der Unterschied, wenn der Dart pendelt: Bei Nickrate −400 °/s und 6 m/s lag ein hinten schwerer Dart mit Slim-Flight 16 mm höher als ein vorn schwerer mit Standard-Flight. Ursache ist der Auftrieb des schräg angeströmten Darts, der je nach Setup anders wirkt, und der Griff-Anteil der Nickrate.
+
+Nicht im Modell: dass man einen schwereren Dart in der Praxis oft etwas langsamer wirft. Wer das vergleichen will, stellt die Geschwindigkeit von Hand um oder misst beide Darts per Video.
 
 ## Wovon hängt der Steckwinkel ab?
 

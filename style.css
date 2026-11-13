@@ -35,6 +35,11 @@ a{color:var(--ca)}
 .slot span{font-size:12px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .slot.a[aria-pressed="true"]{border-color:var(--ca);background:var(--sel)}
 .slot.b[aria-pressed="true"]{border-color:var(--cb);background:var(--selb)}
+.slot b::after{content:" ▾";font-weight:500;color:var(--muted)}
+.slot[aria-expanded="true"] b::after{content:" ▴"}
+.picker{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+.pkhead{display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:var(--f-head);font-weight:600;font-size:15px}
+.pkhead button{padding:4px 10px;font-size:13px;font-family:var(--f-body);font-weight:400}
 .brands{display:flex;gap:6px;overflow-x:auto;padding:10px 0 8px;scrollbar-width:thin}
 .brands button{flex:none;border-radius:999px;padding:5px 12px;font-size:13px;white-space:nowrap}
 .brands button small{color:var(--muted);margin-left:4px}
@@ -86,6 +91,7 @@ canvas{display:block;width:100%;border:1px solid var(--line);border-radius:8px;b
 .row label{color:var(--muted);font-size:13px}.row output{text-align:right;font-variant-numeric:tabular-nums}
 input[type=range]{width:100%;accent-color:var(--act,var(--ca))}
 .ctl.edB{--act:var(--cb)}
+.refrow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:2px 0 4px;font-size:13px;color:var(--muted)}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
 .seg button{font-size:13px;padding:6px}
 .seg button[aria-pressed="true"]{background:var(--sel);border-color:var(--act,var(--ca))}
