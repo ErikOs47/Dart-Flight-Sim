@@ -7,7 +7,7 @@
 <meta name="description" content="Darts vor dem Kauf per Flugsimulation vergleichen.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600&family=Barlow:wght@400;500&display=swap">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
 <main>
@@ -205,10 +205,36 @@
 </div>
 </section>
 
-<!-- 3. Details -->
+<!-- 4. Setup-Berater -->
+<section aria-labelledby="h-adv">
+<details id="adv">
+<summary><h2 id="h-adv">4 · Setup-Berater</h2></summary>
+<p class="note">Was ändert sich, wenn du an deinem Setup etwas tauschst? Alle Varianten fliegen mit genau deinem eingestellten Wurf (Abschnitt 3); der Abwurfwinkel ist so gewählt, dass das Ausgangs-Setup den Bull trifft.</p>
+<div class="refrow"><span>Ausgangs-Setup</span><div class="ab" id="avb" role="group" aria-label="Ausgangs-Setup"><button data-i="0" class="a" aria-pressed="true">Dart A</button><button data-i="1" class="b" aria-pressed="false">Dart B</button></div></div>
+<p class="note" id="avn"></p>
+<h3>Wirkung einzelner Änderungen</h3>
+<div class="scx"><div class="tbl t7" id="avt"></div></div>
+<p class="note">Werte der Varianten als Änderung gegenüber dem Ausgangs-Setup. Fett = günstiger: flacherer Anstellwinkel, kleineres R90, Treffhöhe näher am Bull, tiefer im Board. Beim Steckwinkel gibt es kein besser oder schlechter, das hängt von deinem Ziel ab. Steckwinkel = Winkel beim Auftreffen (das Nachkippen im Board ist noch nicht im Modell). Griff-Änderungen beruhen auf einer groben Annahme.</p>
+<h3>Zielsuche</h3>
+<div class="mgrid">
+<label for="avg">Ziel</label><select id="avg"><option value="steck">Steckwinkel auf Zielwert</option><option value="calm">Flug so ruhig wie möglich</option><option value="tight">Trefferbild so eng wie möglich</option></select>
+<label for="avs" id="avsl">Steckwinkel</label><span class="u" id="avsu"><input id="avs" type="number" min="-20" max="40" step="0.5" inputmode="decimal"> ° ± <input id="avtol" type="number" min="0.2" max="10" step="0.1" value="1" inputmode="decimal" style="width:64px"> °</span>
+</div>
+<div class="chk">
+<label><input type="checkbox" id="avc1" checked> Flug nicht unruhiger als jetzt</label>
+<label><input type="checkbox" id="avc2"> Trefferbild nicht breiter als jetzt</label>
+<label><input type="checkbox" id="avc3"> Treffhöhe wie jetzt (±5 mm, kein Umzielen nötig)</label>
+<label><input type="checkbox" id="avc4"> Auch andere Barrels aus der Datenbank (dauert einige Sekunden)</label>
+</div>
+<div class="vbar2"><button id="avgo" class="pri">Suchen</button><span class="note" id="avp"></span></div>
+<div id="avr"></div>
+</details>
+</section>
+
+<!-- 5. Details -->
 <section aria-labelledby="h-det">
 <details>
-<summary><h2 id="h-det">4 · Alle Kennwerte und Bewertung</h2></summary>
+<summary><h2 id="h-det">5 · Alle Kennwerte und Bewertung</h2></summary>
 <div class="tbl">
 <div class="h">Kennwert</div><div class="h ca" id="tA">A</div><div class="h cb" id="tB">B</div>
 <div class="k">Gesamtlänge</div><div id="rLA"></div><div id="rLB"></div>
@@ -231,9 +257,10 @@
 </details>
 </section>
 </main>
-<script src="physics.js?v=9"></script>
-<script src="measure.js?v=9"></script>
-<script src="app.js?v=9"></script>
-<script src="video.js?v=9"></script>
+<script src="physics.js?v=10"></script>
+<script src="measure.js?v=10"></script>
+<script src="app.js?v=10"></script>
+<script src="video.js?v=10"></script>
+<script src="advisor.js?v=10"></script>
 </body>
 </html>

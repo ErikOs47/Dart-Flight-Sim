@@ -105,6 +105,17 @@ input[type=range]{width:100%;accent-color:var(--act,var(--ca))}
 .mgrid .u input{width:96px;flex:none}
 #mres.err{color:var(--warn)}
 #sgm button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.tbl.t7{grid-template-columns:minmax(120px,1.8fr) repeat(5,minmax(0,1fr)) auto;font-size:13px;margin-top:6px}
+.tbl.t7 .base{background:var(--bg);font-weight:500}
+.tbl.t7 .g{font-weight:700}
+.tbl.t7 .go{padding:2px 8px;font-size:12px}
+.tbl.t7 .sub{display:block;font-size:11px;color:var(--muted);font-weight:400}
+.chk{display:flex;flex-direction:column;gap:4px;font-size:13px;margin:6px 0}
+.chk input{margin-right:6px}
+#adv h3{margin-top:14px}
+.scx{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tbl.t7 .h{hyphens:auto}
+@media (max-width:620px){.tbl.t7{min-width:560px;grid-template-columns:130px repeat(5,1fr) auto;font-size:12px}.tbl.t7>div{padding:5px 5px}}
 .refrow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:2px 0 4px;font-size:13px;color:var(--muted)}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
 .seg button{font-size:13px;padding:6px}

@@ -27,7 +27,7 @@ const SEED=[
 {id:'target-littler-g1-23',brand:'Target',model:'Target Luke Littler G1 Prodigy',name:'Target Luke Littler G1 Prodigy (23 g)',short:'Littler G1',bw:23,len:52,dia:6.5,shape:'Gerade',bal:'Mitte',cg:50,url:SRC+'target-luke-littler-g1-prodigy-swiss-point-steel-tip-darts-23gm'}
 ];
 // Bei jeder Änderung an App oder Daten erhöhen (auch ?v= in index.html), damit Browser keine alte Version aus dem Cache nehmen
-const DATA_V='9';
+const DATA_V='10';
 const LS_KEY='dartlabor.custom.v1',OWN='Eigene';
 let brands=[],darts=SEED.slice(),custom=loadCustom(),brandSel='';
 function loadCustom(){try{const r=JSON.parse(localStorage.getItem(LS_KEY)||'[]');return Array.isArray(r)?r:[]}catch(e){return[]}}
@@ -437,6 +437,25 @@ meas=m||null;recompute();return lim;
 },
 clearMeas:function(){meas=null;redraw();saveState()},
 // Mittelwerte wie applyThrow, dazu Streuung (1 σ: v m/s, ang °, dl °, wp °/s, h mm) aus n gemessenen Würfen
+// Für den Setup-Berater (advisor.js)
+setup:function(i){return JSON.parse(JSON.stringify(setups[i]))},
+label:lbl,
+darts:function(){return all()},
+fromDart:function(d,keep){return Object.assign(fromDart(d),{grip:keep.grip,tip:keep.tip,shaft:keep.shaft,shape:keep.shape})},
+sigName:function(){return sigMode==='mine'?'Mein Wurf':'Standard'},
+// Abwurfwinkel, mit dem Setup s den Bull trifft (beim aktuellen Wurf)
+aimAngle:function(s){return solveAng(build(s),0.0005)},
+// Kennwerte eines Setups bei festem Abwurfwinkel; full = mit Trefferbild (R90)
+metrics:function(s,ang,full,dt){
+const p=build(s);p.ang=ang;const r=sim3(p,true,dt||0.0005),g=geom(p);
+let amax=0;r.frames.forEach(f=>{if(f.at>amax)amax=f.at});
+const o={steck:-r.th/D,dy:(r.y-YB)*1000,amax:amax/D,depth:Math.min(p.tip,0.5*g.M*r.vax*r.vax/F_RES*1000),mass:g.Mg,len:g.len,r90:null};
+if(full){const sc=scatter(p,K_SCATTER,sigSI());let mx=0,my=0;sc.forEach(q=>{mx+=q[0];my+=q[1]});mx/=sc.length;my/=sc.length;
+const d=sc.map(q=>Math.hypot(q[0]-mx,q[1]-my)).sort((a,b)=>a-b);o.r90=d[Math.floor(0.9*(d.length-1))]}
+return o;
+},
+// Setup in Platz i laden und aktiv machen
+setSetup:function(i,s){setups[i]=s;if(act!==i)setAct(i);else syncUI();recompute()},
 setThrowProfile:function(t,sd,n){
 const lim=this.applyThrow(t,null);
 if(sd&&n>=3){sigMine=Object.assign({},sigStd(),sd);sigSrc='aus '+n+' gemessenen Würfen';sigMode='mine';renderSig();recompute()}
