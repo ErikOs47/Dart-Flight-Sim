@@ -29,12 +29,14 @@ Online: In GitHub unter *Settings → Pages* „Deploy from a branch“, Branch 
 
 | Datei | Inhalt |
 |---|---|
+| `CLAUDE.md` | Entwickler-/Agenten-Doku: Architektur, Schwachstellen, To-dos, Konventionen |
 | `index.html` | Oberfläche |
 | `style.css` | Layout, Hell/Dunkel-Modus |
 | `physics.js` | Physikmodell (ohne DOM, auch in Node lauffähig) |
 | `measure.js` | Wurfmessung: Auswertung der Marken, Bildverfolgung (ohne DOM) |
 | `app.js` | Vergleich, Zeichnungen, Dart-Auswahl, Regler |
 | `video.js` | Oberfläche der Video-Messung |
+| `advisor.js` | Setup-Berater (Wirkungstabelle, Zielsuche) |
 | `test/run.js` | Rechentests: `node test/run.js` |
 | `data/brands.json` | Markenverzeichnis (Name, Datei, Anzahl Darts/Modelle) |
 | `data/brands/<marke>.json` | Darts einer Marke, z. B. `harrows.json` |
