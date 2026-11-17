@@ -10,7 +10,9 @@ Web-App, um Steel-Tip-Darts **vor dem Kauf** per Flugsimulation zu vergleichen. 
 
 Was die Tabelle im Modell zeigt: Das Trefferbild (R90) ändert sich durch das Setup kaum, es hängt am Wurf. Steckwinkel und Flugruhe lassen sich dagegen spürbar verschieben. Der Flight wirkt am stärksten, ist aber auch der am wenigsten abgesicherte Teil des Modells (Flight-Aerodynamik nur angenähert, siehe Modell).
 
-**Steckwinkel per Foto (Abschnitt 3):** Steckende Pfeile genau von der Seite fotografieren, je Pfeil Spitze und Flight-Ende antippen, optional eine senkrechte Kante als Referenz gegen Schräglage des Handys. Die App zeigt den Winkel je Pfeil sowie Mittelwert ± Streuung und schätzt daraus die Wurfgeschwindigkeit: Sie sucht die Geschwindigkeit, bei der der aktive Dart mit den übrigen eingestellten Wurfwerten genau so im Board steckt. Im Modell verschieben andere Annahmen für Abwurfhöhe (±10 cm), Nickrate (−412 °/s) oder Abstand (−20 cm) das Ergebnis nur um 0,1–0,2 m/s. Beispiel: drei Pfeile mit 24–29° (Mittel 25,7°) ergeben mit dem Aspinall G2 etwa 5,3 m/s (8 m/s ergäbe nur ≈ 7°).
+**Steckwinkel per Foto (Abschnitt 3):** Steckende Pfeile genau von der Seite fotografieren, je Pfeil Spitze und Flight-Ende antippen, optional eine senkrechte Kante als Referenz gegen Schräglage des Handys. Die App zeigt den Winkel je Pfeil sowie Mittelwert ± Streuung und schätzt daraus die Wurfgeschwindigkeit: Sie sucht die Geschwindigkeit, bei der der aktive Dart mit den übrigen eingestellten Wurfwerten genau so im Board steckt. Im Modell verschieben andere Annahmen für Abwurfhöhe (±10 cm), Nickrate (−412 °/s) oder Abstand (−20 cm) das Ergebnis nur um 0,1–0,2 m/s. Beispiel: drei Pfeile mit 24–29° (Mittel 25,7°) ergeben etwa 5,3 m/s (8 m/s ergäbe nur ≈ 7°).
+
+Mit einem Maßstab (oberer und unterer Rand eines Rings auf dem Board antippen, z. B. Triple-Ring außen = 214 mm; senkrecht ist die Board-Fläche im Foto unverzerrt) und je Pfeil der Barrel-Front misst die App auch die **Einstecktiefe** (sichtbare Spitzenlänge minus sichtbarer Rest, etwa ±2 mm genau). Daraus berechnet sie den **Eindringwiderstand deines Boards** (Bewegungsenergie in Achsrichtung beim Auftreffen / Tiefe) und übernimmt ihn ins Modell. Reihenfolge: erst Geschwindigkeit schätzen (oder per Video messen), dann den Widerstand.
 
 Den eigenen Wurf kann man per Video messen (Abschnitt 2 der App): Wurf von der Seite filmen, Dart in einigen Bildern markieren, die App berechnet Geschwindigkeit, Abwurfwinkel, Anstellwinkel, Nickrate, Abwurfhöhe und Abstand und übernimmt sie in die Simulation.
 
@@ -139,7 +141,7 @@ James & Potts (2018) haben 225 Würfe von 19 Amateuren gefilmt: Median 6,0 m/s, 
 | Flight No.6 (Slim) | ca. 44 × 24 mm | Quellen uneinheitlich |
 | Griff-Nickimpuls | 0,25 rad/s (≈ 14 °/s) pro mm Abstand Griff–Schwerpunkt, Griff hinter Schwerpunkt → Spitze kippt nach unten | grob geschätzt; Griff 25 mm hinter dem Schwerpunkt ergibt ≈ −400 °/s, passt zur Größenordnung bei James & Potts |
 | Nickrate / Anstellwinkel beim Abwurf | Regler, Standard 0 | Amateur-Median: −412 °/s, +2,9° (James & Potts 2018) |
-| Eindringwiderstand | 50 N | geschätzt |
+| Eindringwiderstand | 23 N (Standard) | aus einem Nutzerfoto zurückgerechnet: Einstecktiefe ≈ 14 mm (± 3 mm zwischen 3 Pfeilen), 25-g-Dart, ≈ 5,3 m/s (aus dem Steckwinkel) → 20–28 N; vorher geschätzt 50 N. Pro Board per Foto kalibrierbar |
 | Board-Haltemoment | Q = 1000 N/m² (bei 10 mm Tiefe 0,1 N·m, etwa 8× das Schwerkraftmoment eines 22-g-Darts) | grob abgeschätzt aus der Eindringkraft; unter etwa 400 N/m² kippen Darts mit ~8 mm Tiefe merklich nach |
 | Massen Spitze/Schaft/Flight | 1,5 g je 25 mm / 0,02 g je mm / 0,75 g (No.2), 0,55 g (No.6) | geschätzt; bei „Mein Dart“ steckt der Fehler im zurückgerechneten Barrel, Gesamtmasse und Schwerpunkt stimmen trotzdem |
 | Wurfstreuung „Standard“ | 1 σ: 0,12 m/s, 0,36°, 1,2°, 52 °/s, 3 mm | grobe Annahme, nicht gemessen |

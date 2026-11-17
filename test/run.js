@@ -65,7 +65,7 @@ function dart(over) {
   const r = PH.sim3(p, false), g = PH.geom(p), im = PH.impact(p, r, g), s0 = -r.th / D;
   assert(im.held && Math.abs(im.steck - s0) < 3, 'Steckwinkel im Board ' + im.steck + ' vs Auftreffen ' + s0);
   assert(Math.abs(im.e - Math.min(p.tip, 0.5 * g.M * r.vax * r.vax / PH.F_RES * 1000)) < 1e-6, 'Eindringtiefe');
-  const soft = PH.impact(p, r, g, 50); assert(!soft.held && soft.steck < s0, 'weiches Board muss abkippen');
+  const soft = PH.impact(p, r, g, 10); assert(!soft.held && soft.steck < s0, 'weiches Board muss abkippen');
   console.log('Einschlag ok: Auftreffen', s0.toFixed(1), '° -> im Board', im.steck.toFixed(1), '°, Tiefe', im.e.toFixed(1), 'mm');
 }
 console.log('alle Tests ok');

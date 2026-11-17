@@ -27,7 +27,7 @@ const SEED=[
 {id:'target-littler-g1-23',brand:'Target',model:'Target Luke Littler G1 Prodigy',name:'Target Luke Littler G1 Prodigy (23 g)',short:'Littler G1',bw:23,len:52,dia:6.5,shape:'Gerade',bal:'Mitte',cg:50,url:SRC+'target-luke-littler-g1-prodigy-swiss-point-steel-tip-darts-23gm'}
 ];
 // Bei jeder Änderung an App oder Daten erhöhen (auch ?v= in index.html), damit Browser keine alte Version aus dem Cache nehmen
-const DATA_V='11';
+const DATA_V='12';
 const LS_KEY='dartlabor.custom.v1',OWN='Eigene';
 let brands=[],darts=SEED.slice(),custom=loadCustom(),brandSel='';
 function loadCustom(){try{const r=JSON.parse(localStorage.getItem(LS_KEY)||'[]');return Array.isArray(r)?r:[]}catch(e){return[]}}
@@ -42,9 +42,9 @@ const BASE={tip:25,shaft:30,shape:'n2',size:1,grip:24};
 function fromDart(d){return Object.assign({},BASE,{dartId:d.id,name:d.short||d.name,mod:false,wt:d.bw,bar:d.len,dia:d.dia,cg:d.cg})}
 let setups=[fromDart(SEED[0]),fromDart(SEED[1])],act=0,out=[null,null];
 function fit(cv,h){const dpr=window.devicePixelRatio||1,w=cv.clientWidth||300;cv.style.height=h+'px';cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);return{c:c,W:w,H:h}}
-function build(s,ov){const p={wt:s.wt,bar:s.bar,dia:s.dia,cg:s.cg,tip:s.tip,shaft:s.shaft,shape:s.shape,size:s.size,wear:0,grip:0,ang:0,h:+$('h').value,v:+$('v').value,xb:+$('xb').value,psi:0,delta:+$('dl').value*D,eps:0,wp:+$('wp').value*D,wy:0,spin:5*2*Math.PI,wind:0};if(ov)Object.assign(p,ov);p.grip=p.tip+p.bar-Math.min(s.grip,p.bar);return p}
+function build(s,ov){const p={wt:s.wt,bar:s.bar,dia:s.dia,cg:s.cg,tip:s.tip,shaft:s.shaft,shape:s.shape,size:s.size,wear:0,grip:0,ang:0,h:+$('h').value,v:+$('v').value,xb:+$('xb').value,psi:0,delta:+$('dl').value*D,eps:0,wp:+$('wp').value*D,wy:0,spin:5*2*Math.PI,wind:0,fres:boardF||F_RES};if(ov)Object.assign(p,ov);p.grip=p.tip+p.bar-Math.min(s.grip,p.bar);return p}
 // Gleicher Wurf für beide Darts: Abwurfwinkel so, dass der Ziel-Dart (ref) den Bull trifft; der andere fliegt mit demselben Winkel
-let ref=0,refMiss=false;
+let ref=0,refMiss=false,boardF=null; // boardF: Eindringwiderstand aus Foto-Kalibrierung (N), null = Standard F_RES
 function calcAll(){
 const pr=build(setups[ref]);const ang=solveAng(pr,0.0005);
 refMiss=Math.abs(sim3(pr,false,0.0005).y-YB)>0.01;
@@ -56,7 +56,7 @@ const res=sim3(p,true),g=geom(p),miss=refMiss;
 let amax=0;res.frames.forEach(f=>{if(f.at>amax)amax=f.at});
 const sc=scatter(p,K_SCATTER,sigSI());let mx=0,my=0;sc.forEach(q=>{mx+=q[0];my+=q[1]});mx/=sc.length;my/=sc.length;
 const d=sc.map(q=>Math.hypot(q[0]-mx,q[1]-my)).sort((a,b)=>a-b),r90=d[Math.floor(0.9*(d.length-1))];
-const Eax=0.5*g.M*res.vax*res.vax,depth=Math.min(p.tip,Eax/F_RES*1000);
+const Eax=0.5*g.M*res.vax*res.vax,depth=Math.min(p.tip,Eax/p.fres*1000);
 const l=(g.sCP-g.sCG)*1e-3,kw=0.5*RHO*p.v*p.v*g.eta*g.ae.S*g.ae.K1*l/g.I;
 const wtot=(p.wp+GK*(g.sCG-p.grip)*(p.v/7))/D;
 const im=PH.impact(p,res,g);
@@ -405,7 +405,7 @@ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',redraw)
 /* ---------- Zustand merken (localStorage) ---------- */
 const ST_KEY='dartlabor.state.v1';
 function saveState(){
-try{const th={};THROW.forEach(id=>th[id]=+$(id).value);localStorage.setItem(ST_KEY,JSON.stringify({setups:setups,act:act,ref:ref,th:th,meas:meas,sigMode:sigMode,sigMine:sigMine,sigSrc:sigSrc}))}catch(e){}
+try{const th={};THROW.forEach(id=>th[id]=+$(id).value);localStorage.setItem(ST_KEY,JSON.stringify({setups:setups,act:act,ref:ref,boardF:boardF,th:th,meas:meas,sigMode:sigMode,sigMine:sigMine,sigSrc:sigSrc}))}catch(e){}
 }
 function loadState(){
 try{
@@ -416,6 +416,7 @@ if(st.act===1)act=1;
 if(st.ref===1)setRef(1);
 if(st.sigMine&&SIGK.every(k=>isFinite(st.sigMine[k]))){sigMine=st.sigMine;sigSrc=String(st.sigSrc||'')}
 if(st.sigMode==='mine'&&sigMine)sigMode='mine';
+if(st.boardF>=5&&st.boardF<=200)boardF=st.boardF;
 if(st.th)THROW.forEach(id=>{if(isFinite(st.th[id]))$(id).value=st.th[id]});
 if(st.meas&&Array.isArray(st.meas.pts))meas=st.meas;
 }catch(e){}
@@ -473,6 +474,11 @@ if(!flo.ok||!fhi.ok||target>flo.steck||target<fhi.steck)return null;
 for(let i=0;i<30&&hi-lo>0.005;i++){const m=(lo+hi)/2,fm=f(m);if(!fm.ok)return null;if(fm.steck>target)lo=m;else hi=m}
 const v=(lo+hi)/2;return{v:v,steck:f(v).steck};
 },
+// Eindringwiderstand des Boards (N); null = Standard
+boardF:function(){return boardF||F_RES},boardFIsDefault:function(){return!boardF},
+setBoardF:function(F){boardF=F>=5&&F<=200?F:null;recompute()},
+// Bewegungsenergie in Achsrichtung beim Auftreffen für Setup s beim eingestellten Wurf
+impactEnergy:function(s){const p=build(s);p.ang=solveAng(p,0.0005);const r=sim3(p,false),g=geom(p);return{E:0.5*g.M*r.vax*r.vax,vax:r.vax,m:g.Mg,hit:Math.abs(r.y-YB)<0.01}},
 setThrowValue:function(id,v){const el=$(id);el.value=v;recompute();return+el.value},
 setThrowProfile:function(t,sd,n){
 const lim=this.applyThrow(t,null);

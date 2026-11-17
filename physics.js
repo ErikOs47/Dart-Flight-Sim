@@ -8,7 +8,7 @@ const aeroCache={};
 const D=Math.PI/180,G=9.81,RHO=1.204,NU=1.5e-5; // Luft 20 °C
 const YB=1.73;                 // Bull-Höhe (m); Abstand Abwurf–Board ist Wurfparameter p.xb
 const GK=0.25;                 // Griff-Nickimpuls rad/s pro mm Abstand Griff–CG (Annahme)
-const F_RES=50;
+const F_RES=23;                // Eindringwiderstand Board (N): aus Nutzerfoto abgeleitet (Tiefe ≈ 14 mm bei 25 g, ≈ 5,3 m/s), vorher geschätzt 50 N; pro Wurf über p.fres änderbar
 const Q_HOLD=1000;              // Board-Haltemoment M = Q_HOLD · Eindringtiefe² (N·m, Tiefe in m; Annahme, siehe impact)                // Eindringwiderstand Board (N, Annahme)
 const CD_STEP=0.9,CD_CYL=1.1,CD_PLATE=1.17,D_SHAFT=4.8,D_TIP=1.6,R_HUB=2.4;
 // Flight-Umrisse: Länge mm, Masse g, Halbspannweite über Länge
@@ -153,7 +153,7 @@ const r=sim3(q,false,0.001);out.push([r.z*1000,(r.y-YB)*1000]);
 return out;
 }
 // Einschlag (2D, Seitenebene): Die Spitze wird beim Auftreffen seitlich festgehalten und dringt mit konstanter
-// Widerstandskraft F_RES ein. Der Dart dreht um die Spitze: Anfangsdrehrate aus dem Drehimpuls um die Spitze
+// Widerstandskraft p.fres (Standard F_RES) ein. Der Dart dreht um die Spitze: Anfangsdrehrate aus dem Drehimpuls um die Spitze
 // (Nickrate und Querbewegung des Schwerpunkts), danach bremst das Board die Drehung mit einem Haltemoment
 // M = Q_HOLD · e² (e = momentane Eindringtiefe, wie ein seitlich belasteter Stift), die Schwerkraft zieht das Heck nach unten.
 // Rückgabe: steck = Steckwinkel im Board (°, + = Flight über der Spitze), held = Dart hält, e = Eindringtiefe (mm), dth = Änderung ggü. Auftreffen (°)
@@ -162,7 +162,7 @@ if(!(r&&isFinite(r.vx)))return{steck:NaN,held:false,e:0,dth:0};
 Q=Q||Q_HOLD;
 const m=g.M,d=g.sCG*1e-3,I=g.I,It=I+m*d*d,th=r.th,ex=Math.cos(th),ey=Math.sin(th);
 let w=(I*r.wz-m*d*(ex*r.vy-ey*r.vx))/It,ang=th,u=Math.max(0,r.vax),e=0;
-const a=F_RES/m,ef=Math.min(p.tip*1e-3,0.5*u*u/a),dt=2e-5;
+const a=(p.fres||F_RES)/m,ef=Math.min(p.tip*1e-3,0.5*u*u/a),dt=2e-5;
 for(let i=0;i<100000;i++){
 if(u>0){u=Math.max(0,u-a*dt);e+=u*dt;if(e>=ef){e=ef;u=0}}
 const Mg=m*G*d*Math.cos(ang),M=Q*e*e;

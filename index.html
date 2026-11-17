@@ -7,7 +7,7 @@
 <meta name="description" content="Darts vor dem Kauf per Flugsimulation vergleichen.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600&family=Barlow:wght@400;500&display=swap">
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 <main>
@@ -159,11 +159,21 @@
 </div>
 <p class="note hint" id="pmsg"></p>
 <div id="pwork" hidden>
-<div class="seg3 seg2" id="pmode" role="group" aria-label="Was ein Tippen ins Bild setzt">
+<div class="seg3" id="pmode" role="group" aria-label="Was ein Tippen ins Bild setzt">
 <button data-m="dart" aria-pressed="true">Pfeil markieren</button>
-<button data-m="vert" aria-pressed="false">Senkrechte (optional)</button>
+<button data-m="scale" aria-pressed="false">Maßstab (für Tiefe)</button>
+<button data-m="vert" aria-pressed="false">Senkrechte</button>
 </div>
 <p class="vhint" id="phint"></p>
+<div class="vopts" id="po-scale" hidden>
+<select id="psl" aria-label="Referenzstrecke">
+<option value="214">Triple-Ring außen, oben bis unten (214 mm)</option>
+<option value="340">Double-Ring außen, oben bis unten (340 mm)</option>
+<option value="31.8">Bull außen, oben bis unten (31,8 mm)</option>
+<option value="0">Eigene Länge</option>
+</select>
+<input type="number" id="psv" min="1" max="2000" step="0.1" value="214" aria-label="Länge der Referenzstrecke in mm"><span>mm</span>
+</div>
 <div class="stage"><canvas id="pc" tabindex="0" aria-label="Foto zum Markieren"></canvas></div>
 <div class="vbar2">
 <span id="plab"></span><span class="sp"></span>
@@ -175,8 +185,10 @@
 <h3>Steckwinkel im Board</h3>
 <div id="plist"></div>
 <p class="note" id="pnote"></p>
-<div class="vbar2"><button id="pest" class="pri">Wurfgeschwindigkeit daraus abschätzen</button></div>
+<div class="mgrid"><label for="ptl">Spitze sichtbar (neu)</label><span class="u"><input id="ptl" type="number" min="10" max="50" step="0.5" inputmode="decimal"> mm</span></div>
+<div class="vbar2"><button id="pest" class="pri">1. Wurfgeschwindigkeit abschätzen</button><button id="pfres">2. Board-Widerstand aus Tiefe</button><button id="pfstd">Widerstand: Standard</button></div>
 <p class="note" id="pestn"></p>
+<p class="note" id="pfn"></p>
 </div>
 </details>
 </section>
@@ -298,11 +310,11 @@
 </details>
 </section>
 </main>
-<script src="physics.js?v=11"></script>
-<script src="measure.js?v=11"></script>
-<script src="app.js?v=11"></script>
-<script src="video.js?v=11"></script>
-<script src="photo.js?v=11"></script>
-<script src="advisor.js?v=11"></script>
+<script src="physics.js?v=12"></script>
+<script src="measure.js?v=12"></script>
+<script src="app.js?v=12"></script>
+<script src="video.js?v=12"></script>
+<script src="photo.js?v=12"></script>
+<script src="advisor.js?v=12"></script>
 </body>
 </html>
