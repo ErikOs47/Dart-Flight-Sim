@@ -8,7 +8,8 @@ const aeroCache={};
 const D=Math.PI/180,G=9.81,RHO=1.204,NU=1.5e-5; // Luft 20 °C
 const YB=1.73;                 // Bull-Höhe (m); Abstand Abwurf–Board ist Wurfparameter p.xb
 const GK=0.25;                 // Griff-Nickimpuls rad/s pro mm Abstand Griff–CG (Annahme)
-const F_RES=50;                // Eindringwiderstand Board (N, Annahme)
+const F_RES=50;
+const Q_HOLD=1000;              // Board-Haltemoment M = Q_HOLD · Eindringtiefe² (N·m, Tiefe in m; Annahme, siehe impact)                // Eindringwiderstand Board (N, Annahme)
 const CD_STEP=0.9,CD_CYL=1.1,CD_PLATE=1.17,D_SHAFT=4.8,D_TIP=1.6,R_HUB=2.4;
 // Flight-Umrisse: Länge mm, Masse g, Halbspannweite über Länge
 const BASES={
@@ -125,7 +126,9 @@ const th2=Math.atan2(ey,Math.sqrt(ex*ex+ez*ez)),gam2=Math.atan2(vy,Math.sqrt(vx*
 let a2=th2-gam2;a2=Math.atan2(Math.sin(a2),Math.cos(a2));
 const at2=Math.acos(Math.max(-1,Math.min(1,vax2/s2)));
 if(keep)fr.push({t:Ti,x:XB-sc0*ex,y:yi-sc0*ey,z:zi-sc0*ez,th:th2,gam:gam2,a:a2,at:at2,phi:phi});
-return{T:Ti,y:yi,z:zi,th:th2,gam:gam2,a:a2,at:at2,v:s2,vax:vax2,frames:fr};
+// Nickrate beim Auftreffen (rad/s, um die Querachse z; + = Spitze hebt sich) für das Einschlag-Modell
+const el2=ex*Lx+ey*Ly+ez*Lz,wz=(Lz-el2*ez)/It;
+return{T:Ti,y:yi,z:zi,th:th2,gam:gam2,a:a2,at:at2,v:s2,vax:vax2,vx:vx,vy:vy,wz:wz,frames:fr};
 }
 }
 return{T:t,y:-9,z:0,th:0,gam:0,a:0,at:0,v:0,vax:0,frames:fr};
@@ -149,6 +152,27 @@ const r=sim3(q,false,0.001);out.push([r.z*1000,(r.y-YB)*1000]);
 }
 return out;
 }
+// Einschlag (2D, Seitenebene): Die Spitze wird beim Auftreffen seitlich festgehalten und dringt mit konstanter
+// Widerstandskraft F_RES ein. Der Dart dreht um die Spitze: Anfangsdrehrate aus dem Drehimpuls um die Spitze
+// (Nickrate und Querbewegung des Schwerpunkts), danach bremst das Board die Drehung mit einem Haltemoment
+// M = Q_HOLD · e² (e = momentane Eindringtiefe, wie ein seitlich belasteter Stift), die Schwerkraft zieht das Heck nach unten.
+// Rückgabe: steck = Steckwinkel im Board (°, + = Flight über der Spitze), held = Dart hält, e = Eindringtiefe (mm), dth = Änderung ggü. Auftreffen (°)
+function impact(p,r,g,Q){
+if(!(r&&isFinite(r.vx)))return{steck:NaN,held:false,e:0,dth:0};
+Q=Q||Q_HOLD;
+const m=g.M,d=g.sCG*1e-3,I=g.I,It=I+m*d*d,th=r.th,ex=Math.cos(th),ey=Math.sin(th);
+let w=(I*r.wz-m*d*(ex*r.vy-ey*r.vx))/It,ang=th,u=Math.max(0,r.vax),e=0;
+const a=F_RES/m,ef=Math.min(p.tip*1e-3,0.5*u*u/a),dt=2e-5;
+for(let i=0;i<100000;i++){
+if(u>0){u=Math.max(0,u-a*dt);e+=u*dt;if(e>=ef){e=ef;u=0}}
+const Mg=m*G*d*Math.cos(ang),M=Q*e*e;
+if(w===0||Math.abs(w)<1e-4){if(Math.abs(Mg)<=M){if(u===0)break;continue}w=0;w+=(Mg-Math.sign(Mg)*M)/It*dt}
+else{const wn=w+(Mg-Math.sign(w)*M)/It*dt;w=Math.sign(wn)!==Math.sign(w)&&Math.abs(Mg)<=M?0:wn}
+ang+=w*dt;
+if(Math.abs(ang)>1.4)return{steck:-ang/D,held:false,e:ef*1000,dth:(th-ang)/D};
+}
+return{steck:-ang/D,held:true,e:ef*1000,dth:(th-ang)/D};
+}
 // Gemessener kompletter Dart -> Setup: Barrel-Gewicht und Barrel-Schwerpunkt so, dass Gesamtmasse und Gesamtschwerpunkt
 // im Modell exakt den Messwerten entsprechen (Spitze, Schaft, Flight mit den Modellmassen aus geom).
 // m: {mass g, cgTip mm ab Spitze, tip, bar, shaft mm, shape}. Rückgabe {wt, cg (% Barrel ab Spitze), ok, err}
@@ -163,6 +187,6 @@ return{ok:true,wt:wt,cg:cg};
 }
 // Gesamte Nickrate beim Abwurf (rad/s): Regler-Anteil + Griff-Anteil
 function gripRate(g,p){return GK*(g.sCG-p.grip)*(p.v/7)}
-const api={SIG:SIG,fromMeasured:fromMeasured,D:D,G:G,RHO:RHO,YB:YB,GK:GK,F_RES:F_RES,K_SCATTER:K_SCATTER,shapeFor:shapeFor,geom:geom,sim3:sim3,solveAng:solveAng,scatter:scatter,gripRate:gripRate};
+const api={Q_HOLD:Q_HOLD,impact:impact,SIG:SIG,fromMeasured:fromMeasured,D:D,G:G,RHO:RHO,YB:YB,GK:GK,F_RES:F_RES,K_SCATTER:K_SCATTER,shapeFor:shapeFor,geom:geom,sim3:sim3,solveAng:solveAng,scatter:scatter,gripRate:gripRate};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.DartPhys=api;
 })(typeof window!=='undefined'?window:globalThis);

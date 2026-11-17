@@ -140,6 +140,10 @@ button:disabled{opacity:.5;cursor:default}
 .row2 input,.vopts input,.vopts select{border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--bg);min-width:0}
 .seg3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 6px}
 .seg3 button{font-size:13px;padding:7px 4px}
+.seg3.seg2{grid-template-columns:repeat(2,1fr)}
+#pc{touch-action:none;cursor:crosshair;background:#000}
+.plist{display:grid;grid-template-columns:auto 1fr auto;gap:2px 12px;font-size:13px;font-variant-numeric:tabular-nums;max-width:360px}
+.plist .del{padding:0 6px;border:0;background:none;color:var(--muted)}
 .seg3 button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
 .vhint{margin:6px 0;font-weight:500}
 .vopts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0;font-size:13px}

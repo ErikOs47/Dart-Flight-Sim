@@ -59,4 +59,13 @@ function dart(over) {
   assert(s2 / s1 > 1.8 && s2 / s1 < 2.2, 'Skalierung ' + s2 / s1);
   console.log('Streuung ok: vertikal', s1.toFixed(1), 'mm ->', s2.toFixed(1), 'mm');
 }
+// 5. Einschlag: fest steckender Dart kippt kaum nach; bei sehr schwachem Board kippt das Heck nach unten weg
+{
+  const p = dart({ v: 6, wp: -412 * D, delta: 2.9 * D, tip: 26 }); p.ang = PH.solveAng(p, 0.0005);
+  const r = PH.sim3(p, false), g = PH.geom(p), im = PH.impact(p, r, g), s0 = -r.th / D;
+  assert(im.held && Math.abs(im.steck - s0) < 3, 'Steckwinkel im Board ' + im.steck + ' vs Auftreffen ' + s0);
+  assert(Math.abs(im.e - Math.min(p.tip, 0.5 * g.M * r.vax * r.vax / PH.F_RES * 1000)) < 1e-6, 'Eindringtiefe');
+  const soft = PH.impact(p, r, g, 50); assert(!soft.held && soft.steck < s0, 'weiches Board muss abkippen');
+  console.log('Einschlag ok: Auftreffen', s0.toFixed(1), '° -> im Board', im.steck.toFixed(1), '°, Tiefe', im.e.toFixed(1), 'mm');
+}
 console.log('alle Tests ok');

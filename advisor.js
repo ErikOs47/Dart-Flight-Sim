@@ -41,6 +41,7 @@ function cells(m, b) {
   return COLS.map(c => {
     const v = m[c[1]];
     if (v == null) return '<div>–</div>';
+    if (c[1] === 'steck' && m.held === false) return '<div>kippt ab</div>';
     if (!b) return '<div>' + (c[1] === 'dy' ? sgn(v, c[2]) : fmt(v, c[2])) + c[3] + '</div>';
     const d = v - b[c[1]], w = c[4], tiny = Math.abs(d) < 0.5 * Math.pow(10, -c[2]);
     const good = !tiny && (w === 'lo' ? d < 0 : w === 'hi' ? d > 0 : w === 'abs' ? Math.abs(v) < Math.abs(b[c[1]]) : false);
@@ -98,6 +99,7 @@ async function search() {
       const s = Object.assign({}, br, { shaft: sh, tip: tp, shape: fl, mod: true, mine: br === b ? b.mine : false });
       const m = LAB.metrics(s, ang, false, 0.001);
       n++;
+      if (!m.held) continue;
       if (calmC && m.amax > bm.amax + 0.05) continue;
       if (hC && Math.abs(m.dy - bm.dy) > 5) continue;
       const ch = variantName(b, s), mag = Math.abs(sh - b.shaft) / 10 + Math.abs(tp - b.tip) / 4;
