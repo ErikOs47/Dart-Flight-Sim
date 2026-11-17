@@ -7,11 +7,11 @@
 <meta name="description" content="Darts vor dem Kauf per Flugsimulation vergleichen.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600&family=Barlow:wght@400;500&display=swap">
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 <main>
-<header><h1>Dart-Labor</h1><p class="sub">Zwei Darts wählen, eigenen Wurf einstellen oder per Video messen, Flugverhalten und Steckwinkel live vergleichen.</p></header>
+<header><h1>Dart-Labor</h1><p class="sub">Zwei Darts wählen, eigenen Wurf einstellen oder per Video und Foto messen, Flugverhalten und Steckwinkel live vergleichen.</p></header>
 
 <!-- 1. Darts wählen -->
 <section aria-labelledby="h-pick">
@@ -141,9 +141,61 @@
 </details>
 </section>
 
-<!-- 3. Labor: Grafik + Regler nebeneinander -->
+<!-- 3. Steckwinkel per Foto -->
+<section aria-labelledby="h-pho">
+<details id="pdet">
+<summary><h2 id="h-pho">3 · Steckwinkel per Foto messen</h2></summary>
+<p class="note">Steckende Pfeile von der Seite fotografieren, je Pfeil Spitze und Flight-Ende antippen. Die App misst den Winkel im Board und kann daraus deine Wurfgeschwindigkeit abschätzen. Das Foto bleibt auf deinem Gerät.</p>
+<details class="more"><summary>So fotografierst du richtig</summary>
+<ul class="tips">
+<li><b>Genau von der Seite</b>, Kamera an der Wand entlang auf Höhe der Pfeile. Von der Board-Fläche soll man fast nichts sehen.</li>
+<li><b>Handy gerade halten.</b> Ist eine senkrechte Kante im Bild (Cabinet, Türrahmen, Wandecke), sie unter „Senkrechte“ antippen: Die App gleicht eine Schräglage des Handys aus.</li>
+<li>Abstand etwa 0,5–1 m, nicht mit Weitwinkel ganz nah ran (verzerrt).</li>
+<li>Mehrere Pfeile aus normalen Würfen, nicht zurechtgerückt.</li>
+</ul></details>
+<div class="vbtns">
+<label class="btn">Foto aufnehmen<input type="file" id="pcam" accept="image/*" capture="environment" hidden></label>
+<label class="btn">Foto wählen<input type="file" id="pfile" accept="image/*" hidden></label>
+</div>
+<p class="note hint" id="pmsg"></p>
+<div id="pwork" hidden>
+<div class="seg3" id="pmode" role="group" aria-label="Was ein Tippen ins Bild setzt">
+<button data-m="dart" aria-pressed="true">Pfeil markieren</button>
+<button data-m="scale" aria-pressed="false">Maßstab (für Tiefe)</button>
+<button data-m="vert" aria-pressed="false">Senkrechte</button>
+</div>
+<p class="vhint" id="phint"></p>
+<div class="vopts" id="po-scale" hidden>
+<select id="psl" aria-label="Referenzstrecke">
+<option value="214">Triple-Ring außen, oben bis unten (214 mm)</option>
+<option value="340">Double-Ring außen, oben bis unten (340 mm)</option>
+<option value="31.8">Bull außen, oben bis unten (31,8 mm)</option>
+<option value="0">Eigene Länge</option>
+</select>
+<input type="number" id="psv" min="1" max="2000" step="0.1" value="214" aria-label="Länge der Referenzstrecke in mm"><span>mm</span>
+</div>
+<div class="stage"><canvas id="pc" tabindex="0" aria-label="Foto zum Markieren"></canvas></div>
+<div class="vbar2">
+<span id="plab"></span><span class="sp"></span>
+<button id="pzo" aria-label="Verkleinern">−</button><button id="pzr">Ganz</button><button id="pzi" aria-label="Vergrößern">+</button>
+</div>
+<div class="vbar2"><button id="pundo">Letzten Pfeil löschen</button><button id="pclr">Alle löschen</button></div>
+</div>
+<div id="pres" hidden>
+<h3>Steckwinkel im Board</h3>
+<div id="plist"></div>
+<p class="note" id="pnote"></p>
+<div class="mgrid"><label for="ptl">Spitze sichtbar (neu)</label><span class="u"><input id="ptl" type="number" min="10" max="50" step="0.5" inputmode="decimal"> mm</span></div>
+<div class="vbar2"><button id="pest" class="pri">1. Wurfgeschwindigkeit abschätzen</button><button id="pfres">2. Board-Widerstand aus Tiefe</button><button id="pfstd">Widerstand: Standard</button></div>
+<p class="note" id="pestn"></p>
+<p class="note" id="pfn"></p>
+</div>
+</details>
+</section>
+
+<!-- 4. Labor: Grafik + Regler nebeneinander -->
 <section aria-labelledby="h-lab" class="lab">
-<h2 id="h-lab">3 · Vergleichen und einstellen</h2>
+<h2 id="h-lab">4 · Vergleichen und einstellen</h2>
 <div class="labgrid">
 <div class="vizcol">
 <div class="viz" id="viz">
@@ -208,8 +260,8 @@
 <!-- 4. Setup-Berater -->
 <section aria-labelledby="h-adv">
 <details id="adv">
-<summary><h2 id="h-adv">4 · Setup-Berater</h2></summary>
-<p class="note">Was ändert sich, wenn du an deinem Setup etwas tauschst? Alle Varianten fliegen mit genau deinem eingestellten Wurf (Abschnitt 3); der Abwurfwinkel ist so gewählt, dass das Ausgangs-Setup den Bull trifft.</p>
+<summary><h2 id="h-adv">5 · Setup-Berater</h2></summary>
+<p class="note">Was ändert sich, wenn du an deinem Setup etwas tauschst? Alle Varianten fliegen mit genau deinem eingestellten Wurf (Abschnitt 4); der Abwurfwinkel ist so gewählt, dass das Ausgangs-Setup den Bull trifft.</p>
 <div class="refrow"><span>Ausgangs-Setup</span><div class="ab" id="avb" role="group" aria-label="Ausgangs-Setup"><button data-i="0" class="a" aria-pressed="true">Dart A</button><button data-i="1" class="b" aria-pressed="false">Dart B</button></div></div>
 <p class="note" id="avn"></p>
 <h3>Wirkung einzelner Änderungen</h3>
@@ -234,7 +286,7 @@
 <!-- 5. Details -->
 <section aria-labelledby="h-det">
 <details>
-<summary><h2 id="h-det">5 · Alle Kennwerte und Bewertung</h2></summary>
+<summary><h2 id="h-det">6 · Alle Kennwerte und Bewertung</h2></summary>
 <div class="tbl">
 <div class="h">Kennwert</div><div class="h ca" id="tA">A</div><div class="h cb" id="tB">B</div>
 <div class="k">Gesamtlänge</div><div id="rLA"></div><div id="rLB"></div>
@@ -242,7 +294,8 @@
 <div class="k">Gesamtgewicht</div><div id="rMA"></div><div id="rMB"></div>
 <div class="k">Abwurfwinkel</div><div id="rWA"></div><div id="rWB"></div>
 <div class="k">Flugzeit</div><div id="rTA"></div><div id="rTB"></div>
-<div class="k">Steckwinkel</div><div id="rKA"></div><div id="rKB"></div>
+<div class="k">Steckwinkel im Board</div><div id="rKA"></div><div id="rKB"></div>
+<div class="k">Winkel beim Auftreffen</div><div id="rIA"></div><div id="rIB"></div>
 <div class="k">Max. Anstellwinkel</div><div id="rAA"></div><div id="rAB"></div>
 <div class="k">Nickperiode</div><div id="rPA"></div><div id="rPB"></div>
 <div class="k">Nickrate Abwurf gesamt</div><div id="rNA"></div><div id="rNB"></div>
@@ -257,10 +310,11 @@
 </details>
 </section>
 </main>
-<script src="physics.js?v=10"></script>
-<script src="measure.js?v=10"></script>
-<script src="app.js?v=10"></script>
-<script src="video.js?v=10"></script>
-<script src="advisor.js?v=10"></script>
+<script src="physics.js?v=12"></script>
+<script src="measure.js?v=12"></script>
+<script src="app.js?v=12"></script>
+<script src="video.js?v=12"></script>
+<script src="photo.js?v=12"></script>
+<script src="advisor.js?v=12"></script>
 </body>
 </html>

@@ -6,9 +6,13 @@ Web-App, um Steel-Tip-Darts **vor dem Kauf** per Flugsimulation zu vergleichen. 
 
 **Mein Wurf:** Die Wurfstreuung (1 σ von Geschwindigkeit, Abwurfwinkel, Anstellwinkel, Nickrate, Abwurfhöhe) kommt entweder aus der Standardannahme, aus mindestens 3 gemerkten Video-Würfen („Als „Mein Wurf“ übernehmen“, Stichproben-Standardabweichung) oder wird von Hand eingetragen. Die seitliche Streuung sieht die Seitenkamera nicht, sie bleibt bei der Annahme. Die Werte werden als unabhängig behandelt; echte Korrelationen (z. B. langsamer und dafür höher geworfen) fehlen, das Trefferbild ist dadurch eher zu breit. Bei wenigen Würfen ist die gemessene Streuung selbst unsicher, und Messfehler der Video-Auswertung stecken mit drin.
 
-**Setup-Berater (Abschnitt 4):** Ausgangs-Setup (A oder B, z. B. „Mein Dart“) wählen. Die Wirkungstabelle zeigt für einzelne Änderungen (Schaft ±10 mm, Spitze ±4 mm, anderer Flight, Barrel ±2 g bei gleicher Form, Barrel-Schwerpunkt ±8 %, Griff ±5 mm) die Änderung von Steckwinkel, Treffhöhe, maximalem Anstellwinkel, R90 und Eindringtiefe. Alle Varianten fliegen mit demselben Wurf; der Abwurfwinkel ist so gewählt, dass das Ausgangs-Setup den Bull trifft. Die Zielsuche probiert Schaftlängen 15–55 mm, Spitze ±4 mm und beide Flights durch (optional zusätzlich alle Barrels der Datenbank mit deinen Teilen) und sortiert nach Ziel (Steckwinkel auf Zielwert, möglichst ruhiger Flug oder möglichst enges Trefferbild) und nach Zahl der nötigen Änderungen. Jede Zeile lässt sich mit „→ B“ in den anderen Platz laden und dort im Detail vergleichen.
+**Setup-Berater (Abschnitt 5):** Ausgangs-Setup (A oder B, z. B. „Mein Dart“) wählen. Die Wirkungstabelle zeigt für einzelne Änderungen (Schaft ±10 mm, Spitze ±4 mm, anderer Flight, Barrel ±2 g bei gleicher Form, Barrel-Schwerpunkt ±8 %, Griff ±5 mm) die Änderung von Steckwinkel, Treffhöhe, maximalem Anstellwinkel, R90 und Eindringtiefe. Alle Varianten fliegen mit demselben Wurf; der Abwurfwinkel ist so gewählt, dass das Ausgangs-Setup den Bull trifft. Die Zielsuche probiert Schaftlängen 15–55 mm, Spitze ±4 mm und beide Flights durch (optional zusätzlich alle Barrels der Datenbank mit deinen Teilen) und sortiert nach Ziel (Steckwinkel auf Zielwert, möglichst ruhiger Flug oder möglichst enges Trefferbild) und nach Zahl der nötigen Änderungen. Jede Zeile lässt sich mit „→ B“ in den anderen Platz laden und dort im Detail vergleichen.
 
 Was die Tabelle im Modell zeigt: Das Trefferbild (R90) ändert sich durch das Setup kaum, es hängt am Wurf. Steckwinkel und Flugruhe lassen sich dagegen spürbar verschieben. Der Flight wirkt am stärksten, ist aber auch der am wenigsten abgesicherte Teil des Modells (Flight-Aerodynamik nur angenähert, siehe Modell).
+
+**Steckwinkel per Foto (Abschnitt 3):** Steckende Pfeile genau von der Seite fotografieren, je Pfeil Spitze und Flight-Ende antippen, optional eine senkrechte Kante als Referenz gegen Schräglage des Handys. Die App zeigt den Winkel je Pfeil sowie Mittelwert ± Streuung und schätzt daraus die Wurfgeschwindigkeit: Sie sucht die Geschwindigkeit, bei der der aktive Dart mit den übrigen eingestellten Wurfwerten genau so im Board steckt. Im Modell verschieben andere Annahmen für Abwurfhöhe (±10 cm), Nickrate (−412 °/s) oder Abstand (−20 cm) das Ergebnis nur um 0,1–0,2 m/s. Beispiel: drei Pfeile mit 24–29° (Mittel 25,7°) ergeben etwa 5,3 m/s (8 m/s ergäbe nur ≈ 7°).
+
+Mit einem Maßstab (oberer und unterer Rand eines Rings auf dem Board antippen, z. B. Triple-Ring außen = 214 mm; senkrecht ist die Board-Fläche im Foto unverzerrt) und je Pfeil der Barrel-Front misst die App auch die **Einstecktiefe** (sichtbare Spitzenlänge minus sichtbarer Rest, etwa ±2 mm genau). Daraus berechnet sie den **Eindringwiderstand deines Boards** (Bewegungsenergie in Achsrichtung beim Auftreffen / Tiefe) und übernimmt ihn ins Modell. Reihenfolge: erst Geschwindigkeit schätzen (oder per Video messen), dann den Widerstand.
 
 Den eigenen Wurf kann man per Video messen (Abschnitt 2 der App): Wurf von der Seite filmen, Dart in einigen Bildern markieren, die App berechnet Geschwindigkeit, Abwurfwinkel, Anstellwinkel, Nickrate, Abwurfhöhe und Abstand und übernimmt sie in die Simulation.
 
@@ -36,6 +40,7 @@ Online: In GitHub unter *Settings → Pages* „Deploy from a branch“, Branch 
 | `measure.js` | Wurfmessung: Auswertung der Marken, Bildverfolgung (ohne DOM) |
 | `app.js` | Vergleich, Zeichnungen, Dart-Auswahl, Regler |
 | `video.js` | Oberfläche der Video-Messung |
+| `photo.js` | Steckwinkel per Foto messen, Wurfgeschwindigkeit schätzen |
 | `advisor.js` | Setup-Berater (Wirkungstabelle, Zielsuche) |
 | `test/run.js` | Rechentests: `node test/run.js` |
 | `data/brands.json` | Markenverzeichnis (Name, Datei, Anzahl Darts/Modelle) |
@@ -107,7 +112,8 @@ Quellen der Maße: Händlerangaben von [a-zdarts.com](https://a-zdarts.com) (138
 - **Momente:** Rückstellmoment Flight und Rumpf, Nickdämpfung über Anströmung am Druckpunkt (ω × Hebelarm), Rolldämpfung des Drall, Nachlauf-Abschwächung des Flights durch das Barrel.
 - **Wurf:** Abwurfwinkel wird per Sekantenverfahren so gesucht, dass die Spitze des Ziel-Darts den Bull trifft; der andere Dart fliegt mit identischem Wurf (Geschwindigkeit, Winkel, Höhe, Nickrate, Anstellwinkel). Treffhöhe = Höhe der Spitze an der Board-Fläche relativ zum Bull. Drall 5 U/s.
 - **Streuung:** 24 Würfe mit fester Zufallsfolge (gleich für jeden Dart), gestört werden Abwurfwinkel, Seitenwinkel, Geschwindigkeit, Anstell-/Schiebewinkel, Nick-/Gierrate und Höhe. R90 = Radius um den Mittelpunkt, in dem 90 % liegen.
-- **Kennwerte:** Steckwinkel (Neigung beim Auftreffen), max. Anstellwinkel, Nickperiode (lineare Näherung), Eindringtiefe = axiale Energie / Eindringwiderstand.
+- **Einschlag:** Die Spitze wird beim Auftreffen seitlich festgehalten und dringt mit konstanter Kraft ein. Der Dart dreht um die Spitze (Anfangsdrehrate aus dem Drehimpuls um die Spitze), das Board bremst die Drehung mit einem Haltemoment M = Q · e² (e = Eindringtiefe), die Schwerkraft zieht das Heck nach unten. Ergebnis: Steckwinkel im Board und ob der Dart hält. Bei normaler Eindringtiefe kippt der Dart im Modell nur 0–2° nach; der Winkel im Board ist also fast der Auftreffwinkel. Bei zu geringer Eindringtiefe kippt das Heck nach unten weg.
+- **Kennwerte:** Steckwinkel im Board (aus dem Einschlag-Modell) und beim Auftreffen, max. Anstellwinkel, Nickperiode (lineare Näherung), Eindringtiefe = axiale Energie / Eindringwiderstand.
 
 ## Warum treffen Darts bei gleichem Wurf unterschiedlich hoch?
 
@@ -135,7 +141,8 @@ James & Potts (2018) haben 225 Würfe von 19 Amateuren gefilmt: Median 6,0 m/s, 
 | Flight No.6 (Slim) | ca. 44 × 24 mm | Quellen uneinheitlich |
 | Griff-Nickimpuls | 0,25 rad/s (≈ 14 °/s) pro mm Abstand Griff–Schwerpunkt, Griff hinter Schwerpunkt → Spitze kippt nach unten | grob geschätzt; Griff 25 mm hinter dem Schwerpunkt ergibt ≈ −400 °/s, passt zur Größenordnung bei James & Potts |
 | Nickrate / Anstellwinkel beim Abwurf | Regler, Standard 0 | Amateur-Median: −412 °/s, +2,9° (James & Potts 2018) |
-| Eindringwiderstand | 50 N | geschätzt |
+| Eindringwiderstand | 23 N (Standard) | aus einem Nutzerfoto zurückgerechnet: Einstecktiefe ≈ 14 mm (± 3 mm zwischen 3 Pfeilen), 25-g-Dart, ≈ 5,3 m/s (aus dem Steckwinkel) → 20–28 N; vorher geschätzt 50 N. Pro Board per Foto kalibrierbar |
+| Board-Haltemoment | Q = 1000 N/m² (bei 10 mm Tiefe 0,1 N·m, etwa 8× das Schwerkraftmoment eines 22-g-Darts) | grob abgeschätzt aus der Eindringkraft; unter etwa 400 N/m² kippen Darts mit ~8 mm Tiefe merklich nach |
 | Massen Spitze/Schaft/Flight | 1,5 g je 25 mm / 0,02 g je mm / 0,75 g (No.2), 0,55 g (No.6) | geschätzt; bei „Mein Dart“ steckt der Fehler im zurückgerechneten Barrel, Gesamtmasse und Schwerpunkt stimmen trotzdem |
 | Wurfstreuung „Standard“ | 1 σ: 0,12 m/s, 0,36°, 1,2°, 52 °/s, 3 mm | grobe Annahme, nicht gemessen |
 | Schwerpunkt aus Balance | vorn 40 %, Mitte 50 %, hinten 58 % | Hersteller veröffentlichen keine Messwerte |

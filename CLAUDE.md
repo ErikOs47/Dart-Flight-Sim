@@ -24,7 +24,7 @@ node test/run.js                 # Rechentests ohne Browser (Physik, Messung, R�
 
 - Kein Build, keine Abhängigkeiten, kein `package.json`.
 - Veröffentlicht über **GitHub Pages** aus `main` (Ordner `/`, `.nojekyll` vorhanden).
-- **Cache-Busting:** Nach jeder Änderung an Code oder Daten `DATA_V` in `app.js` **und** alle `?v=` in `index.html` auf denselben neuen Wert erhöhen (aktuell `10`). Sonst zeigt v. a. Safari die alte Version.
+- **Cache-Busting:** Nach jeder Änderung an Code oder Daten `DATA_V` in `app.js` **und** alle `?v=` in `index.html` auf denselben neuen Wert erhöhen (aktuell `12`). Sonst zeigt v. a. Safari die alte Version.
 - Browser-Tests: Chromium und Playwright sind in Cloud-Sessions vorinstalliert (`require('playwright')`, ggf. `NODE_PATH=$(npm root -g)`). Bisher liegen keine E2E-Tests im Repo (siehe To-dos); geprüft wurde mit Wegwerf-Skripten: Seite laden, Regler per `el.value=…; el.dispatchEvent(new Event('input'))` setzen, Texte/Screenshots prüfen, `pageerror`/Konsole auf Fehler prüfen, Desktop (1200 px) **und** Handy (390 px).
 
 ## Architektur
@@ -37,6 +37,7 @@ Reines HTML/CSS/JS. Skripte werden in dieser Reihenfolge geladen (`index.html`),
 | `measure.js` | Auswertung der Video-Marken, Bildverfolgung | `window.DartMeasure` | nein, läuft in Node |
 | `app.js` | Dart-Auswahl, Regler, Berechnung, alle Zeichnungen, Zustand | `window.DartLab` | ja |
 | `video.js` | Oberfläche der Video-Messung | – (nutzt `DartMeasure`, `DartLab`) | ja |
+| `photo.js` | Steckwinkel per Foto messen, Geschwindigkeit schätzen | – (nutzt `DartLab`) | ja |
 | `advisor.js` | Setup-Berater (Wirkungstabelle, Zielsuche) | – (nutzt `DartLab`) | ja |
 | `style.css` | Layout, Hell/Dunkel (CSS-Variablen `--ca`, `--cb` …) | | |
 | `data/brands.json`, `data/brands/<marke>.json` | Dart-Datenbank (357 Darts, 10 Marken) | | |
@@ -46,9 +47,10 @@ Reines HTML/CSS/JS. Skripte werden in dieser Reihenfolge geladen (`index.html`),
 
 1. **Darts wählen:** Plätze A/B; die Dart-Suche (Marken, Suchfeld, Liste) ist eingeklappt und öffnet sich beim Antippen von A oder B. Darunter „★ Mein Dart“ (gemessene Werte eintragen).
 2. **Eigenen Wurf per Video messen** (`video.js`).
-3. **Vergleichen und einstellen:** Grafiken (Endlage mit Treffhöhen-Skala, Flugbahn, Trefferbild, Anstellwinkel im Flug), Kennwerte, Regler für Wurf (beide Darts) und Dart-Setup (A/B), Wurfstreuung Standard/„Mein Wurf“.
-4. **Setup-Berater** (`advisor.js`).
-5. **Alle Kennwerte und Bewertung** (Tabelle).
+3. **Steckwinkel per Foto messen** (`photo.js`): je Pfeil Spitze, Barrel-Front, Flight-Ende; optionale Senkrechte gegen Schräglage und Maßstab (Ring auf dem Board) für die Einstecktiefe. Schätzt Wurfgeschwindigkeit (aus Winkel) und kalibriert den Eindringwiderstand (aus Tiefe).
+4. **Vergleichen und einstellen:** Grafiken (Endlage mit Treffhöhen-Skala, Flugbahn, Trefferbild, Anstellwinkel im Flug), Kennwerte, Regler für Wurf (beide Darts) und Dart-Setup (A/B), Wurfstreuung Standard/„Mein Wurf“.
+5. **Setup-Berater** (`advisor.js`).
+6. **Alle Kennwerte und Bewertung** (Tabelle).
 
 ### Datenfluss
 
@@ -56,11 +58,11 @@ Reines HTML/CSS/JS. Skripte werden in dieser Reihenfolge geladen (`index.html`),
 - `build(setup)` → Physik-Parameter `p` (Wurfwerte aus den Reglern, Winkel in rad).
 - `recompute()` bündelt Neuberechnungen per `requestAnimationFrame` → `calcAll()` → `labels()` → `redraw()` → `saveState()` → `notify()` (Abonnenten über `DartLab.onChange`).
 - **Gleicher Wurf:** `calcAll()` sucht den Abwurfwinkel für den Ziel-Dart (`ref`, Umschalter „Wurf zielt mit“) per `solveAng`; **beide** Darts fliegen mit diesem Winkel. Die Treffhöhe des anderen Darts ist die Abweichung vom Bull.
-- `out[i]`: Ergebnisse je Platz (`steck, dy, amax, r90, depth, T, per, wtot, sc, res, g, p` …).
+- `out[i]`: Ergebnisse je Platz (`steck` = im Board, `steck0` = beim Auftreffen, `held`, `dy, amax, r90, depth, T, per, wtot, sc, res, g, p` …).
 
 ### `window.DartLab` (Schnittstelle von `app.js`)
 
-`activeDart()`, `onChange(f)`, `applyThrow(t, meas)`, `clearMeas()`, `setThrowProfile(t, sd, n)`, `setup(i)`, `label(i)`, `darts()`, `fromDart(d, keep)`, `sigName()`, `aimAngle(s)`, `metrics(s, ang, full, dt)`, `setSetup(i, s)`. Neue Module sollen über diese Schnittstelle arbeiten, nicht über interne Variablen von `app.js`.
+`activeDart()`, `onChange(f)`, `applyThrow(t, meas)`, `clearMeas()`, `setThrowProfile(t, sd, n)`, `setup(i)`, `label(i)`, `darts()`, `fromDart(d, keep)`, `sigName()`, `aimAngle(s)`, `metrics(s, ang, full, dt)`, `setSetup(i, s)`, `speedForSteck(s, winkel)`, `setThrowValue(id, wert)`, `boardF()`, `boardFIsDefault()`, `setBoardF(F|null)`, `impactEnergy(s)`. Neue Module sollen über diese Schnittstelle arbeiten, nicht über interne Variablen von `app.js`.
 
 ### Zustand im Browser (`localStorage`, alle Zugriffe in `try/catch`)
 
@@ -70,6 +72,7 @@ Reines HTML/CSS/JS. Skripte werden in dieser Reihenfolge geladen (`index.html`),
 | `dartlabor.custom.v1` | eigene gespeicherte Darts (Marke „Eigene“) |
 | `dartlabor.mine.v1` | „Mein Dart“ (Gesamtmasse, Schwerpunkt ab Spitze, Längen, Flight) |
 | `dartlabor.throws.v1` | gemerkte Video-Würfe |
+| `dartlabor.photo.v1` | zuletzt per Foto gemessene Steckwinkel und Einstecktiefen (kein Bild) |
 
 Bei inkompatiblen Formatänderungen den Schlüssel hochzählen (`.v2`), nicht still alte Daten falsch lesen. Geladene Werte immer validieren (`isFinite`, erlaubte `shape`).
 
@@ -84,7 +87,9 @@ Bei inkompatiblen Formatänderungen den Schlüssel hochzählen (`.v2`), nicht st
 - Massen: Spitze 1,5 g je 25 mm, Schaft 0,02 g/mm, Flight 0,75 g (No.2) / 0,55 g (No.6), Barrel als Punktmasse bei `cg`.
 - Flight: Polygon-Umriss, Auftriebsanstieg nach Helmbold, Rumpf-Interferenz, Druckpunkt per Streifentheorie, Plattenwiderstand. Rumpf: Querkraft, Stirnwiderstand, laminare Hautreibung. Nick-/Rolldämpfung, Nachlauf-Abschwächung des Flights.
 - Griff: zusätzliche Nickrate `GK · (Schwerpunkt − Griff) · v/7` mit `GK = 0,25 rad/s pro mm` (**Annahme**).
-- Drall fest 5 U/s, Luftdichte 1,204 kg/m³, Eindringwiderstand 50 N.
+- Drall fest 5 U/s, Luftdichte 1,204 kg/m³. Eindringwiderstand `F_RES = 23 N` (aus Nutzerfoto abgeleitet, vorher 50 N geschätzt), pro Wurf über `p.fres` überschreibbar; `app.js` setzt `p.fres = boardF || F_RES` (`boardF` = Foto-Kalibrierung, gespeichert im Zustand).
+- `impact(p, r, g, Q)`: Einschlag in der Seitenebene. Spitze seitlich festgehalten, dringt mit `F_RES` ein; Dart dreht um die Spitze (Startdrehrate aus Drehimpuls um die Spitze, nutzt `r.vx, r.vy, r.wz` aus `sim3`), Board-Haltemoment `Q_HOLD · e²` (Annahme 1000 N/m²), Schwerkraft. Liefert `steck` (im Board), `held`, `e`. Ergebnis im Modell: fest steckende Darts kippen nur 0–2° nach.
+- `build(s, ov)`: `ov` überschreibt einzelne Wurfwerte (z. B. `{v}` für die Geschwindigkeitsschätzung).
 - `scatter(p, k, sig)`: 24 Würfe mit fester Zufallsfolge (für alle Darts gleich); `sig` = eigene Streuung in SI, sonst Standard `SIG · K_SCATTER`.
 - `fromMeasured(m)`: rechnet aus gemessener Gesamtmasse und Gesamtschwerpunkt Barrel-Gewicht und Barrel-Schwerpunkt so zurück, dass das Modell die Messwerte exakt trifft.
 - Einheiten: `physics.js` intern SI und rad; Setups in mm/g/%; UI in °, °/s, mm.
@@ -117,7 +122,7 @@ Plausibilitätscheck gegen James & Potts 2018 (Sports Engineering 21, 347–358,
 Nach Einfluss auf die Aussagekraft sortiert:
 
 1. **Schwerpunkt der Datenbank-Darts geschätzt** (aus „vorn/Mitte/hinten“). Schwerpunkt und Massenverteilung bestimmen Pendeln und Steckwinkel stark. Für den eigenen Dart gelöst durch „Mein Dart“, für Fremd-Darts nicht.
-2. **Steckwinkel = Winkel beim Auftreffen.** Das Nachkippen im Board (Schwung des Hecks, Schwerkraft, Eindringtiefe) ist nicht modelliert. Der Winkel im Board kann deutlich abweichen.
+2. **Einschlag-Modell vereinfacht** (Schritt 3, umgesetzt): 2D, Board-Haltemoment `Q_HOLD` grob geschätzt, kein Abprallen, keine Verformung des Boards. Ergebnis „kippt kaum nach“ hängt daran, dass das Board fest hält; mit einem Foto allein lässt sich `Q_HOLD` nicht von der Wurfgeschwindigkeit trennen (dafür Video + Foto desselben Wurfs).
 3. **Griff-Nickimpuls `GK` ist erfunden** (nur Größenordnung an J&P angepasst). Gerade die Nickrate verursacht die größten Unterschiede zwischen Setups. Mit nur einem eigenen Dart lässt sich Hand- und Dart-Anteil nicht trennen.
 4. **Flight-Aerodynamik nicht validiert** (Re ≈ 16 000, Kreuzflügel, Abschattung durch das Barrel pauschal max. 8 %). Der Flight hat im Modell den größten Effekt (Slim statt Standard bei −400 °/s: −17° Steckwinkel) – als „großer Effekt“ lesen, nicht als exakte Zahl.
 5. **Streuung:** Standardwerte sind Annahmen; „Mein Wurf“ behandelt die Parameter als unabhängig (echte Korrelationen fehlen → Trefferbild eher zu breit); seitliche Streuung immer Annahme. R90 hängt fast nur am Wurf, kaum am Setup.
@@ -127,11 +132,11 @@ Nach Einfluss auf die Aussagekraft sortiert:
 
 ## Offene To-dos
 
-Mit dem Nutzer abgesprochene Reihenfolge (Schritt 1 und 2 sind erledigt):
+Mit dem Nutzer abgesprochene Reihenfolge (Schritt 1–3 sind erledigt):
 
 - [x] Schritt 1: „Mein Dart“ (gemessene Werte) und „Mein Wurf“ (eigene Streuung)
 - [x] Schritt 2: Setup-Berater (Wirkungstabelle, Zielsuche)
-- [ ] **Schritt 3: Einschlag-Modell** – Spitze dringt mit Widerstandskraft ein, Dart dreht um die Spitze, Schwerkraft → Steckwinkel im Board. Abgleich mit einem Seitenfoto der steckenden Pfeile (vom Nutzer angefragt, noch nicht geliefert).
+- [x] Schritt 3: Einschlag-Modell (Steckwinkel im Board, Abkippen) und Steckwinkel per Foto. Erstes Nutzerfoto (3 Pfeile, Winkel 24–29°, Mittel 25,7° ± 2,7° nach Schräglagen-Ausgleich 1,2°) → im Modell ≈ 5,3 m/s. Einstecktiefe aus dem Foto (Maßstab Triple-Ring, Spitzen 26 mm sichtbar) 11–17 mm, Mittel ≈ 14 mm → Eindringwiderstand ≈ 23 N (Dart des Nutzers: 23 g Barrel, ≈ 25 g gesamt; Schwerpunkt noch nicht gemessen).
 - [ ] **Schritt 4: Kalibrierung** – 2–3 Modellfaktoren (Flight-Auftrieb, Dämpfung, `GK`) so anpassen, dass die Simulation die gemessenen Würfe mit dem eigenen Dart nachbildet; Restfehler anzeigen. Braucht echte Zeitlupenvideos des Nutzers.
 - [ ] Video-Messung mit echten Handyvideos testen und Tracker nachschärfen.
 - [ ] Kennwert **Fehlertoleranz** (mm Abweichung pro typischem Wurffehler, z. B. pro 0,1 m/s und pro 100 °/s) als Alternative zu R90.

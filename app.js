@@ -27,7 +27,7 @@ const SEED=[
 {id:'target-littler-g1-23',brand:'Target',model:'Target Luke Littler G1 Prodigy',name:'Target Luke Littler G1 Prodigy (23 g)',short:'Littler G1',bw:23,len:52,dia:6.5,shape:'Gerade',bal:'Mitte',cg:50,url:SRC+'target-luke-littler-g1-prodigy-swiss-point-steel-tip-darts-23gm'}
 ];
 // Bei jeder Änderung an App oder Daten erhöhen (auch ?v= in index.html), damit Browser keine alte Version aus dem Cache nehmen
-const DATA_V='10';
+const DATA_V='12';
 const LS_KEY='dartlabor.custom.v1',OWN='Eigene';
 let brands=[],darts=SEED.slice(),custom=loadCustom(),brandSel='';
 function loadCustom(){try{const r=JSON.parse(localStorage.getItem(LS_KEY)||'[]');return Array.isArray(r)?r:[]}catch(e){return[]}}
@@ -42,9 +42,9 @@ const BASE={tip:25,shaft:30,shape:'n2',size:1,grip:24};
 function fromDart(d){return Object.assign({},BASE,{dartId:d.id,name:d.short||d.name,mod:false,wt:d.bw,bar:d.len,dia:d.dia,cg:d.cg})}
 let setups=[fromDart(SEED[0]),fromDart(SEED[1])],act=0,out=[null,null];
 function fit(cv,h){const dpr=window.devicePixelRatio||1,w=cv.clientWidth||300;cv.style.height=h+'px';cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);return{c:c,W:w,H:h}}
-function build(s){const p={wt:s.wt,bar:s.bar,dia:s.dia,cg:s.cg,tip:s.tip,shaft:s.shaft,shape:s.shape,size:s.size,wear:0,grip:0,ang:0,h:+$('h').value,v:+$('v').value,xb:+$('xb').value,psi:0,delta:+$('dl').value*D,eps:0,wp:+$('wp').value*D,wy:0,spin:5*2*Math.PI,wind:0};p.grip=p.tip+p.bar-Math.min(s.grip,p.bar);return p}
+function build(s,ov){const p={wt:s.wt,bar:s.bar,dia:s.dia,cg:s.cg,tip:s.tip,shaft:s.shaft,shape:s.shape,size:s.size,wear:0,grip:0,ang:0,h:+$('h').value,v:+$('v').value,xb:+$('xb').value,psi:0,delta:+$('dl').value*D,eps:0,wp:+$('wp').value*D,wy:0,spin:5*2*Math.PI,wind:0,fres:boardF||F_RES};if(ov)Object.assign(p,ov);p.grip=p.tip+p.bar-Math.min(s.grip,p.bar);return p}
 // Gleicher Wurf für beide Darts: Abwurfwinkel so, dass der Ziel-Dart (ref) den Bull trifft; der andere fliegt mit demselben Winkel
-let ref=0,refMiss=false;
+let ref=0,refMiss=false,boardF=null; // boardF: Eindringwiderstand aus Foto-Kalibrierung (N), null = Standard F_RES
 function calcAll(){
 const pr=build(setups[ref]);const ang=solveAng(pr,0.0005);
 refMiss=Math.abs(sim3(pr,false,0.0005).y-YB)>0.01;
@@ -56,16 +56,18 @@ const res=sim3(p,true),g=geom(p),miss=refMiss;
 let amax=0;res.frames.forEach(f=>{if(f.at>amax)amax=f.at});
 const sc=scatter(p,K_SCATTER,sigSI());let mx=0,my=0;sc.forEach(q=>{mx+=q[0];my+=q[1]});mx/=sc.length;my/=sc.length;
 const d=sc.map(q=>Math.hypot(q[0]-mx,q[1]-my)).sort((a,b)=>a-b),r90=d[Math.floor(0.9*(d.length-1))];
-const Eax=0.5*g.M*res.vax*res.vax,depth=Math.min(p.tip,Eax/F_RES*1000);
+const Eax=0.5*g.M*res.vax*res.vax,depth=Math.min(p.tip,Eax/p.fres*1000);
 const l=(g.sCP-g.sCG)*1e-3,kw=0.5*RHO*p.v*p.v*g.eta*g.ae.S*g.ae.K1*l/g.I;
 const wtot=(p.wp+GK*(g.sCG-p.grip)*(p.v/7))/D;
-out[i]={dy:(res.y-YB)*1000,p:p,g:g,res:res,wtot:wtot,sc:sc,miss:miss,steck:-res.th/D,ang:p.ang/D,T:res.T,amax:amax/D,r90:r90,depth:depth,per:2*Math.PI/Math.sqrt(kw),cx:mx,cy:my};
+const im=PH.impact(p,res,g);
+out[i]={dy:(res.y-YB)*1000,p:p,g:g,res:res,wtot:wtot,sc:sc,miss:miss,steck:im.steck,held:im.held,steck0:-res.th/D,ang:p.ang/D,T:res.T,amax:amax/D,r90:r90,depth:depth,per:2*Math.PI/Math.sqrt(kw),cx:mx,cy:my};
 }
 function rating(o){
 const t=[];
 if(o.miss)t.push('Bull bei dieser Geschwindigkeit nicht erreichbar.');
 else if(Math.abs(o.dy)>=0.5)t.push('Trifft bei gleichem Wurf '+fmt(Math.abs(o.dy),1)+' mm '+(o.dy>0?'höher':'tiefer')+' als der Bull.');
-if(o.steck<1)t.push('Steckwinkel unter 1°: Flight steht fast waagerecht oder hängt nach unten.');
+if(!o.held)t.push('Dart hält nicht im Board: Eindringtiefe zu gering, das Heck kippt nach unten weg.');
+else if(o.steck<1)t.push('Steckwinkel unter 1°: Flight steht fast waagerecht oder hängt nach unten.');
 else if(o.steck>15)t.push('Steckwinkel über 15°: Dart steckt sehr steil.');
 else t.push('Steckwinkel im üblichen Bereich (1–15°).');
 t.push(o.amax<5?'Flug ruhig (Anstellwinkel unter 5°).':o.amax<10?'Flug mäßig unruhig (Anstellwinkel '+fmt(o.amax)+'°).':'Flug unruhig (Anstellwinkel '+fmt(o.amax)+'°).');
@@ -78,7 +80,7 @@ function cell(id,a,b){$(id+'A').textContent=a;$(id+'B').textContent=b}
 const KPI=[
 ['Streuung R90',o=>o.r90,v=>fmt(v)+' mm','lo'],
 ['Max. Anstellwinkel',o=>o.amax,v=>fmt(v,1)+'°','lo'],
-['Steckwinkel',o=>o.steck,v=>fmt(v,1)+'°',''],
+['Steckwinkel im Board',o=>o.held?o.steck:NaN,v=>isFinite(v)?fmt(v,1)+'°':'kippt ab',''],
 ['Flugzeit',o=>o.T*1000,v=>fmt(v)+' ms',''],
 ['Eindringtiefe',o=>o.depth,v=>fmt(v)+' mm','hi'],
 ['Nickrate Abwurf',o=>o.wtot,v=>fmt(v)+' °/s',''],
@@ -109,7 +111,8 @@ cell('rS',fmt(A.g.sCG)+' mm',fmt(B.g.sCG)+' mm');
 cell('rM',fmt(A.g.Mg,1)+' g',fmt(B.g.Mg,1)+' g');
 cell('rW',fmt(A.ang,1)+'°',fmt(B.ang,1)+'°');
 cell('rT',fmt(A.T*1000)+' ms',fmt(B.T*1000)+' ms');
-cell('rK',fmt(A.steck,1)+'°',fmt(B.steck,1)+'°');
+const sk=o=>o.held?fmt(o.steck,1)+'°':'kippt ab';cell('rK',sk(A),sk(B));
+cell('rI',fmt(A.steck0,1)+'°',fmt(B.steck0,1)+'°');
 cell('rA',fmt(A.amax,1)+'°',fmt(B.amax,1)+'°');
 cell('rR',fmt(A.r90)+' mm',fmt(B.r90)+' mm');
 cell('rD',fmt(A.depth)+' mm',fmt(B.depth)+' mm');
@@ -207,7 +210,8 @@ c.fillStyle=P.mid;c.font='10px '+FF;c.save();c.translate(bx+BOARD_T*s/2+4,H/2);c
 // Bull-Höhe
 c.strokeStyle=P.faint;c.setLineDash([2,3]);c.beginPath();c.moveTo(0,Y(YB));c.lineTo(bx,Y(YB));c.stroke();c.setLineDash([]);
 order().forEach(i=>{
-const o=out[i],on=i===act,tp=tipPath(o),th=o.res.th,d=o.depth*1e-3;
+// Dart in der Endlage nach dem Einschlag (Einschlag-Modell), Bahn bis zum Auftreffen
+const o=out[i],on=i===act,tp=tipPath(o),th=-o.steck*D,d=o.depth*1e-3;
 c.globalAlpha=on?1:0.3;
 // Bahn der Spitze bis zum Board
 c.strokeStyle=COL[i];c.lineWidth=on?2:1.4;c.setLineDash(i?[5,3]:[]);c.beginPath();
@@ -225,7 +229,9 @@ c.strokeStyle=P.mid;c.lineWidth=1;c.setLineDash([3,3]);c.beginPath();c.moveTo(ax
 c.strokeStyle=COL[i];c.lineWidth=1.5;c.beginPath();
 const a0=Math.PI,a1=Math.PI-th;c.arc(ax,ay,r,Math.min(a0,a1),Math.max(a0,a1));c.stroke();
 c.fillStyle=COL[i];c.font='600 13px '+FF;c.textAlign='right';
-c.fillText('Steckwinkel '+fmt(o.steck,1)+'°',ax-8,ay+(o.steck>=0?20:-12));
+const ly=ay+(o.steck>=0?20:-12);
+c.fillText(o.held?'Steckwinkel '+fmt(o.steck,1)+'°':'kippt ab',ax-8,ly);
+if(o.held&&Math.abs(o.steck-o.steck0)>=0.5){c.font='11px '+FF;c.fillText('beim Auftreffen '+fmt(o.steck0,1)+'°',ax-8,ly+(o.steck>=0?14:-14))}
 }
 c.globalAlpha=1;
 });
@@ -233,7 +239,7 @@ drawHeights(c,W,H);
 const g=out[1-act];
 c.fillStyle=P.mid;c.font='11px '+FF;c.textAlign='left';
 c.fillText('Endlage von der Seite (maßstabsgetreu)',6,13);
-c.fillText((act?'A':'B')+' (Ghost): '+fmt(g.steck,1)+'°, Eindringtiefe '+fmt(g.depth)+' mm',6,H-6);
+c.fillText((act?'A':'B')+' (Ghost): '+(g.held?fmt(g.steck,1)+'°':'kippt ab')+', Eindringtiefe '+fmt(g.depth)+' mm',6,H-6);
 }
 // Treffhöhe vergrößert: wo die Spitzen bei gleichem Wurf relativ zum Bull einstecken (mm)
 function niceMax(v){const st=[2,3,5,10,20,30,50,100,200,500,1000];for(const q of st)if(v<=q)return q;return Math.ceil(v/1000)*1000}
@@ -399,7 +405,7 @@ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',redraw)
 /* ---------- Zustand merken (localStorage) ---------- */
 const ST_KEY='dartlabor.state.v1';
 function saveState(){
-try{const th={};THROW.forEach(id=>th[id]=+$(id).value);localStorage.setItem(ST_KEY,JSON.stringify({setups:setups,act:act,ref:ref,th:th,meas:meas,sigMode:sigMode,sigMine:sigMine,sigSrc:sigSrc}))}catch(e){}
+try{const th={};THROW.forEach(id=>th[id]=+$(id).value);localStorage.setItem(ST_KEY,JSON.stringify({setups:setups,act:act,ref:ref,boardF:boardF,th:th,meas:meas,sigMode:sigMode,sigMine:sigMine,sigSrc:sigSrc}))}catch(e){}
 }
 function loadState(){
 try{
@@ -410,6 +416,7 @@ if(st.act===1)act=1;
 if(st.ref===1)setRef(1);
 if(st.sigMine&&SIGK.every(k=>isFinite(st.sigMine[k]))){sigMine=st.sigMine;sigSrc=String(st.sigSrc||'')}
 if(st.sigMode==='mine'&&sigMine)sigMode='mine';
+if(st.boardF>=5&&st.boardF<=200)boardF=st.boardF;
 if(st.th)THROW.forEach(id=>{if(isFinite(st.th[id]))$(id).value=st.th[id]});
 if(st.meas&&Array.isArray(st.meas.pts))meas=st.meas;
 }catch(e){}
@@ -449,13 +456,30 @@ aimAngle:function(s){return solveAng(build(s),0.0005)},
 metrics:function(s,ang,full,dt){
 const p=build(s);p.ang=ang;const r=sim3(p,true,dt||0.0005),g=geom(p);
 let amax=0;r.frames.forEach(f=>{if(f.at>amax)amax=f.at});
-const o={steck:-r.th/D,dy:(r.y-YB)*1000,amax:amax/D,depth:Math.min(p.tip,0.5*g.M*r.vax*r.vax/F_RES*1000),mass:g.Mg,len:g.len,r90:null};
+const im=PH.impact(p,r,g);
+const o={steck:im.steck,held:im.held,steck0:-r.th/D,dy:(r.y-YB)*1000,amax:amax/D,depth:im.e,mass:g.Mg,len:g.len,r90:null};
 if(full){const sc=scatter(p,K_SCATTER,sigSI());let mx=0,my=0;sc.forEach(q=>{mx+=q[0];my+=q[1]});mx/=sc.length;my/=sc.length;
 const d=sc.map(q=>Math.hypot(q[0]-mx,q[1]-my)).sort((a,b)=>a-b);o.r90=d[Math.floor(0.9*(d.length-1))]}
 return o;
 },
 // Setup in Platz i laden und aktiv machen
 setSetup:function(i,s){setups[i]=s;if(act!==i)setAct(i);else syncUI();recompute()},
+// Wurfgeschwindigkeit schätzen, bei der Setup s mit dem gegebenen Steckwinkel im Board steckt (übrige Wurfwerte wie eingestellt).
+// Bisektion über 4–12 m/s (bzw. ab der langsamsten Geschwindigkeit, die den Bull erreicht) (Steckwinkel fällt mit steigender Geschwindigkeit). Rückgabe {v, steck} oder null
+speedForSteck:function(s,target){
+const f=v=>{const p=build(s,{v:v});p.ang=solveAng(p,0.0005);const r=sim3(p,false),im=PH.impact(p,r,geom(p));return{ok:im.held&&Math.abs(r.y-YB)<0.01,steck:im.steck}};
+// Untergrenze: langsamste Geschwindigkeit, mit der der Bull noch erreichbar ist
+let lo=4,hi=12,flo=f(lo),fhi=f(hi);while(!flo.ok&&lo<hi-0.25){lo+=0.25;flo=f(lo)}
+if(!flo.ok||!fhi.ok||target>flo.steck||target<fhi.steck)return null;
+for(let i=0;i<30&&hi-lo>0.005;i++){const m=(lo+hi)/2,fm=f(m);if(!fm.ok)return null;if(fm.steck>target)lo=m;else hi=m}
+const v=(lo+hi)/2;return{v:v,steck:f(v).steck};
+},
+// Eindringwiderstand des Boards (N); null = Standard
+boardF:function(){return boardF||F_RES},boardFIsDefault:function(){return!boardF},
+setBoardF:function(F){boardF=F>=5&&F<=200?F:null;recompute()},
+// Bewegungsenergie in Achsrichtung beim Auftreffen für Setup s beim eingestellten Wurf
+impactEnergy:function(s){const p=build(s);p.ang=solveAng(p,0.0005);const r=sim3(p,false),g=geom(p);return{E:0.5*g.M*r.vax*r.vax,vax:r.vax,m:g.Mg,hit:Math.abs(r.y-YB)<0.01}},
+setThrowValue:function(id,v){const el=$(id);el.value=v;recompute();return+el.value},
 setThrowProfile:function(t,sd,n){
 const lim=this.applyThrow(t,null);
 if(sd&&n>=3){sigMine=Object.assign({},sigStd(),sd);sigSrc='aus '+n+' gemessenen Würfen';sigMode='mine';renderSig();recompute()}
